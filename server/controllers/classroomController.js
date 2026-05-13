@@ -3,6 +3,7 @@ const User = require('../models/User');
 const Attendance = require('../models/Attendance');
 const AttendanceSession = require('../models/AttendanceSession');
 const jwt = require('jsonwebtoken');
+const { getSocket } = require('../socket');
 
 // @desc    Get timetable for user
 // @route   GET /api/classroom/timetable
@@ -134,7 +135,7 @@ const scanAttendanceQr = async (req, res) => {
       return res.status(403).json({ message: 'Only students can scan attendance QR' });
     }
 
-    const { qrToken } = req.body;
+    const qrToken = String(req.body?.qrToken || '').trim();
     if (!qrToken) {
       return res.status(400).json({ message: 'qrToken is required' });
     }
@@ -164,6 +165,11 @@ const scanAttendanceQr = async (req, res) => {
       return res.status(403).json({ message: 'This QR is not for your active class group' });
     }
 
+    const existing = await Attendance.findOne({
+      student: req.user._id,
+      attendanceSession: attendanceSession._id,
+    });
+
     const attendance = await Attendance.findOneAndUpdate(
       { student: req.user._id, attendanceSession: attendanceSession._id },
       {
@@ -179,7 +185,17 @@ const scanAttendanceQr = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    return res.status(201).json(attendance);
+    const io = getSocket();
+    if (io) {
+      io.to(`user:${attendanceSession.faculty.toString()}`).emit('attendance:marked', {
+        attendanceSessionId: attendanceSession._id.toString(),
+      });
+    }
+
+    return res.status(201).json({
+      attendance,
+      alreadyMarked: Boolean(existing),
+    });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

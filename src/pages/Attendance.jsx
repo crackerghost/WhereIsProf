@@ -10,6 +10,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { Card, Button, Input } from '../components/ui';
 import * as api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
+import { getSocket } from '../services/socket';
 
 const QRScanner = ({ onScan, onClose }) => {
   const [scanError, setScanError] = useState('');
@@ -159,11 +160,20 @@ const Attendance = () => {
       fetchSummary(activeSession._id).catch(() => {});
     }, 5000);
 
+    const socket = getSocket(user?.token);
+    const onAttendanceMarked = (payload) => {
+      if (payload?.attendanceSessionId === activeSession._id) {
+        fetchSummary(activeSession._id).catch(() => {});
+      }
+    };
+    socket.on('attendance:marked', onAttendanceMarked);
+
     return () => {
       clearInterval(tokenInterval);
       clearInterval(summaryInterval);
+      socket.off('attendance:marked', onAttendanceMarked);
     };
-  }, [activeSession?._id, fetchSummary, user?.role]);
+  }, [activeSession?._id, fetchSummary, user?.role, user?.token]);
 
   const handleStartAttendance = async () => {
     if (!selectedSessionId || !totalStudents) return;
@@ -186,8 +196,9 @@ const Attendance = () => {
   const handleScan = async (decodedText) => {
     setIsScanning(false);
     try {
-      await api.scanAttendanceQr(decodedText);
-      alert('Attendance marked successfully');
+      const token = String(decodedText || '').trim();
+      const { data } = await api.scanAttendanceQr(token);
+      alert(data?.alreadyMarked ? 'Attendance already marked for this session' : 'Attendance marked successfully');
       await loadAttendance();
     } catch (error) {
       alert(error.response?.data?.message || 'Invalid QR');

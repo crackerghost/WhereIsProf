@@ -90,6 +90,9 @@ io.use(async (socket, next) => {
 
 io.on('connection', (socket) => {
   emitFacultyStatuses().catch(() => {});
+  if (socket.user?._id) {
+    socket.join(`user:${socket.user._id.toString()}`);
+  }
 
   socket.on('class:join', (classGroupId) => {
     if (classGroupId) {
