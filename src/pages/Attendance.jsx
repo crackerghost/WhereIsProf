@@ -135,6 +135,7 @@ const Attendance = () => {
   const [activeSession, setActiveSession] = useState(null);
   const [qrToken, setQrToken] = useState('');
   const [summary, setSummary] = useState(null);
+  const [studentSummary, setStudentSummary] = useState([]);
   const [busy, setBusy] = useState(false);
   const [showQrFullscreen, setShowQrFullscreen] = useState(false);
 
@@ -153,13 +154,20 @@ const Attendance = () => {
     setAttendanceRows(data);
   }, []);
 
+  const loadStudentSummary = useCallback(async () => {
+    if (user?.role !== 'student') return;
+    const { data } = await api.getStudentAttendanceSummary();
+    setStudentSummary(Array.isArray(data) ? data : []);
+  }, [user?.role]);
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       loadTimetable().catch(() => {});
       loadAttendance().catch(() => {});
+      loadStudentSummary().catch(() => {});
     }, 0);
     return () => clearTimeout(timeoutId);
-  }, [loadTimetable, loadAttendance]);
+  }, [loadTimetable, loadAttendance, loadStudentSummary]);
 
   const fetchSummary = useCallback(async (sessionId) => {
     const { data } = await api.getAttendanceSessionSummary(sessionId);
@@ -222,8 +230,25 @@ const Attendance = () => {
       const { data } = await api.scanAttendanceQr(token);
       alert(data?.alreadyMarked ? 'Attendance already marked for this session' : 'Attendance marked successfully');
       await loadAttendance();
+      await loadStudentSummary();
     } catch (error) {
       alert(error.response?.data?.message || 'Invalid QR');
+    }
+  };
+
+  const handleStopAttendance = async () => {
+    if (!activeSession?._id) return;
+    setBusy(true);
+    try {
+      await api.stopAttendanceSession(activeSession._id);
+      await fetchSummary(activeSession._id);
+      setActiveSession((prev) => (prev ? { ...prev, active: false } : prev));
+      setQrToken('');
+      setShowQrFullscreen(false);
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to stop attendance');
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -287,7 +312,21 @@ const Attendance = () => {
             >
               {busy ? 'Starting...' : 'Start Attendance'}
             </Button>
-            {activeSession && <p className="text-zinc-500 text-[10px] uppercase tracking-widest">Live session started for {activeSession.subject}</p>}
+            {activeSession && (
+              <div className="space-y-3">
+                <p className="text-zinc-500 text-[10px] uppercase tracking-widest">
+                  {activeSession.active === false ? 'Attendance closed for today' : `Live session started for ${activeSession.subject}`}
+                </p>
+                <Button
+                  onClick={handleStopAttendance}
+                  disabled={busy || activeSession.active === false}
+                  variant="danger"
+                  className="w-full h-12 uppercase text-[10px] tracking-widest font-black"
+                >
+                  {busy ? 'Stopping...' : activeSession.active === false ? 'Attendance Closed' : 'Stop Attendance'}
+                </Button>
+              </div>
+            )}
           </Card>
 
           <Card className="p-6 border-zinc-900 bg-zinc-950/40 xl:mt-0">
@@ -303,7 +342,11 @@ const Attendance = () => {
                 </Button>
               </div>
             ) : (
-              <p className="text-zinc-600 text-sm">Start attendance to render QR.</p>
+              <p className="text-zinc-600 text-sm">
+                {activeSession?.active === false
+                  ? 'Attendance closed for this session today.'
+                  : 'Start attendance to render QR.'}
+              </p>
             )}
           </Card>
         </div>
@@ -340,15 +383,50 @@ const Attendance = () => {
       )}
 
       {user?.role === 'student' && (
-        <Card className="p-6 border-zinc-900 bg-zinc-950/40 space-y-3">
-          <h2 className="text-white font-black uppercase">Your Present Records</h2>
-          {studentRows.map((row) => (
-            <div key={row.id} className="p-3 rounded-xl bg-black border border-zinc-900">
-              <p className="text-white font-bold">{row.subject}</p>
-              <p className="text-zinc-500 text-xs">{row.date}</p>
-            </div>
-          ))}
-          {studentRows.length === 0 && <p className="text-zinc-600 text-sm">No attendance entries yet.</p>}
+        <Card className="p-6 border-zinc-900 bg-zinc-950/40 space-y-5">
+          <h2 className="text-white font-black uppercase">Subject-wise Attendance</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {studentSummary.map((item) => (
+              <div key={item.subject} className="p-4 rounded-2xl bg-black border border-zinc-900 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-white font-black uppercase tracking-wide">{item.subject}</p>
+                  <span className="text-xs font-black px-2.5 py-1 rounded-lg bg-white text-black">
+                    {item.percentage}%
+                  </span>
+                </div>
+                <div className="h-2 rounded-full bg-zinc-900 overflow-hidden">
+                  <div className="h-full bg-white transition-all duration-500" style={{ width: `${Math.min(item.percentage, 100)}%` }} />
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-2">
+                    <p className="text-zinc-500 text-[10px] uppercase">Total</p>
+                    <p className="text-white font-black">{item.totalClasses}</p>
+                  </div>
+                  <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-2">
+                    <p className="text-zinc-500 text-[10px] uppercase">Marked</p>
+                    <p className="text-white font-black">{item.markedClasses}</p>
+                  </div>
+                  <div className="rounded-xl border border-zinc-900 bg-zinc-950 p-2">
+                    <p className="text-zinc-500 text-[10px] uppercase">Missed</p>
+                    <p className="text-white font-black">{item.missedClasses}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {studentSummary.length === 0 && (
+            <p className="text-zinc-600 text-sm">No attendance summary available yet.</p>
+          )}
+          <div className="pt-1 space-y-2">
+            <p className="text-zinc-400 text-xs uppercase tracking-widest font-black">Latest marked entries</p>
+            {studentRows.map((row) => (
+              <div key={row.id} className="p-3 rounded-xl bg-black border border-zinc-900">
+                <p className="text-white font-bold">{row.subject}</p>
+                <p className="text-zinc-500 text-xs">{row.date}</p>
+              </div>
+            ))}
+            {studentRows.length === 0 && <p className="text-zinc-600 text-sm">No attendance entries yet.</p>}
+          </div>
         </Card>
       )}
 

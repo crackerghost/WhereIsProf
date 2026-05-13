@@ -74,6 +74,14 @@ const startAttendanceSession = async (req, res) => {
     }
 
     const dateKey = getTodayKey();
+    const existingSession = await AttendanceSession.findOne({
+      classSession: classSession._id,
+      dateKey,
+    });
+    if (existingSession && existingSession.active === false) {
+      return res.status(400).json({ message: 'Attendance already completed for today for this class' });
+    }
+
     const sessionDoc = await AttendanceSession.findOneAndUpdate(
       { classSession: classSession._id, dateKey },
       {
@@ -245,6 +253,32 @@ const getAttendanceSessionSummary = async (req, res) => {
   }
 };
 
+// @desc    Stop attendance session for the day (faculty)
+// @route   POST /api/classroom/attendance/session/:id/stop
+// @access  Private/Faculty
+const stopAttendanceSession = async (req, res) => {
+  try {
+    if (req.user.role !== 'faculty') {
+      return res.status(403).json({ message: 'Only faculty can stop attendance' });
+    }
+
+    const sessionDoc = await AttendanceSession.findById(req.params.id);
+    if (!sessionDoc) {
+      return res.status(404).json({ message: 'Attendance session not found' });
+    }
+    if (String(sessionDoc.faculty) !== String(req.user._id)) {
+      return res.status(403).json({ message: 'Not allowed for this attendance session' });
+    }
+
+    sessionDoc.active = false;
+    await sessionDoc.save();
+
+    return res.json({ message: 'Attendance session stopped', attendanceSession: sessionDoc });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Mark attendance
 // @route   POST /api/classroom/attendance
 // @access  Private/Student
@@ -285,6 +319,58 @@ const getAttendance = async (req, res) => {
   }
 };
 
+// @desc    Get student attendance subject summary
+// @route   GET /api/classroom/attendance/summary/student
+// @access  Private/Student
+const getStudentAttendanceSummary = async (req, res) => {
+  try {
+    if (req.user.role !== 'student') {
+      return res.status(403).json({ message: 'Only students can view student summary' });
+    }
+
+    const student = await User.findById(req.user._id).select('activeClassGroup');
+    if (!student || !student.activeClassGroup) {
+      return res.json([]);
+    }
+
+    const [sessionCounts, presentCounts] = await Promise.all([
+      AttendanceSession.aggregate([
+        { $match: { classGroup: student.activeClassGroup } },
+        { $group: { _id: '$subject', totalClasses: { $sum: 1 } } },
+      ]),
+      Attendance.aggregate([
+        { $match: { student: req.user._id, status: 'Present' } },
+        { $group: { _id: '$subject', markedClasses: { $sum: 1 } } },
+      ]),
+    ]);
+
+    const presentMap = new Map(
+      presentCounts.map((entry) => [String(entry._id || '').trim(), entry.markedClasses || 0])
+    );
+
+    const summary = sessionCounts
+      .map((entry) => {
+        const subject = String(entry._id || '').trim();
+        const totalClasses = Number(entry.totalClasses || 0);
+        const markedClasses = Number(presentMap.get(subject) || 0);
+        const percentage = totalClasses > 0 ? Number(((markedClasses / totalClasses) * 100).toFixed(1)) : 0;
+        return {
+          subject,
+          totalClasses,
+          markedClasses,
+          missedClasses: Math.max(totalClasses - markedClasses, 0),
+          percentage,
+        };
+      })
+      .filter((entry) => entry.subject)
+      .sort((a, b) => a.subject.localeCompare(b.subject, undefined, { sensitivity: 'base' }));
+
+    return res.json(summary);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getTimetable,
   markAttendance,
@@ -293,4 +379,6 @@ module.exports = {
   refreshAttendanceToken,
   scanAttendanceQr,
   getAttendanceSessionSummary,
+  stopAttendanceSession,
+  getStudentAttendanceSummary,
 };

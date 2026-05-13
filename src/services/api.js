@@ -52,6 +52,8 @@ export const scanAttendanceQr = (qrToken) => API.post('/classroom/attendance/sca
 export const startAttendanceSession = (data) => API.post('/classroom/attendance/session/start', data);
 export const refreshAttendanceSessionToken = (sessionId) => API.get(`/classroom/attendance/session/${sessionId}/token`);
 export const getAttendanceSessionSummary = (sessionId) => API.get(`/classroom/attendance/session/${sessionId}/summary`);
+export const stopAttendanceSession = (sessionId) => API.post(`/classroom/attendance/session/${sessionId}/stop`);
+export const getStudentAttendanceSummary = () => API.get('/classroom/attendance/summary/student');
 export const uploadBroadcastAttachment = (file) => {
   const formData = new FormData();
   formData.append('file', file);
