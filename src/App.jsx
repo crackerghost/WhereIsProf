@@ -38,7 +38,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/locator" replace /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to="/locator" replace /> : <Register />} />
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={user ? <Navigate to={user.role === 'faculty' ? '/faculty' : '/locator'} replace /> : <Landing />} />
       
       <Route
         path="/locator"

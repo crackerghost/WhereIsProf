@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   RiQrScan2Line,
@@ -14,11 +14,29 @@ import { getSocket } from '../services/socket';
 
 const QRScanner = ({ onScan, onClose }) => {
   const [scanError, setScanError] = useState('');
+  const scannerRef = useRef(null);
+  const startedRef = useRef(false);
+  const scannedRef = useRef(false);
+
+  const safeStopAndClear = useCallback(async () => {
+    try {
+      if (startedRef.current && scannerRef.current) {
+        await scannerRef.current.stop().catch(() => {});
+      }
+      if (scannerRef.current) {
+        await scannerRef.current.clear().catch(() => {});
+      }
+    } catch {
+      return;
+    }
+  }, []);
 
   useEffect(() => {
     const scanner = new Html5Qrcode('qr-reader');
+    scannerRef.current = scanner;
     let mounted = true;
-    let started = false;
+    startedRef.current = false;
+    scannedRef.current = false;
 
     const startWithConfig = async (cameraConfig) => {
       await scanner.start(
@@ -30,14 +48,15 @@ const QRScanner = ({ onScan, onClose }) => {
           disableFlip: false,
         },
         async (decodedText) => {
-          if (!mounted) return;
-          await scanner.stop().catch(() => {});
-          await scanner.clear().catch(() => {});
+          if (!mounted || scannedRef.current) return;
+          scannedRef.current = true;
+          // Trigger scan completion immediately so UI never gets stuck on black scanner screen.
           onScan(decodedText);
+          safeStopAndClear();
         },
         () => {}
       );
-      started = true;
+      startedRef.current = true;
     };
 
     const startScanner = async () => {
@@ -68,13 +87,16 @@ const QRScanner = ({ onScan, onClose }) => {
 
     return () => {
       mounted = false;
+      scannedRef.current = true;
       clearTimeout(timeoutId);
-      if (started) {
-        scanner.stop().catch(() => {});
-      }
-      scanner.clear().catch(() => {});
+      safeStopAndClear();
     };
-  }, [onScan]);
+  }, [onScan, safeStopAndClear]);
+
+  const handleClose = async () => {
+    await safeStopAndClear();
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
@@ -83,7 +105,7 @@ const QRScanner = ({ onScan, onClose }) => {
           <div>
             <h2 className="text-white font-black uppercase text-lg">Scan Attendance QR</h2>
           </div>
-          <button onClick={onClose} className="p-2 bg-zinc-900 rounded-xl text-zinc-400 hover:text-white">
+          <button type="button" onClick={handleClose} className="p-2 bg-zinc-900 rounded-xl text-zinc-400 hover:text-white">
             <RiCloseLine size={20} />
           </button>
         </div>

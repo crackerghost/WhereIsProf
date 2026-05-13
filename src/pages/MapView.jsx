@@ -3,8 +3,10 @@ import { useSearchParams } from 'react-router-dom';
 import FloorMap from '../features/map/FloorMap';
 import { Layers } from 'lucide-react';
 import * as api from '../services/api';
+import { useStatus } from '../hooks/useStatus';
 
 const MapView = () => {
+  const { professors } = useStatus();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeFloor, setActiveFloor] = useState(1);
   const [highlightedRoom, setHighlightedRoom] = useState(null);
@@ -50,6 +52,14 @@ const MapView = () => {
     { id: 3, name: 'Second Floor', code: '2F' },
     { id: 4, name: 'Third Floor', code: '3F' },
   ];
+
+  const normalizedSelectedRoom = highlightedRoom ? String(highlightedRoom).trim() : '';
+  const occupiedFaculty = professors.filter((prof) => {
+    if (prof.status !== 'in_classroom') return false;
+    const profRoom = prof.classroomNumber ? String(prof.classroomNumber).trim() : '';
+    const profFloor = Number.isFinite(Number(prof.classroomFloor)) ? Number(prof.classroomFloor) : null;
+    return profRoom && normalizedSelectedRoom && profRoom === normalizedSelectedRoom && profFloor === activeFloor;
+  });
 
   return (
     <div className="space-y-8 pb-20">
@@ -98,7 +108,20 @@ const MapView = () => {
         </div>
         
         <div className="relative z-10 border border-zinc-900/50 rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-           <FloorMap highlightedRoom={highlightedRoom} rooms={rooms} />
+           <FloorMap
+             highlightedRoom={highlightedRoom}
+             rooms={rooms}
+             onRoomSelect={(room) => {
+               const roomValue = String(room).trim();
+               setHighlightedRoom(roomValue);
+               setSearchParams((prev) => {
+                 const next = new URLSearchParams(prev);
+                 next.set('floor', String(activeFloor));
+                 next.set('highlight', roomValue);
+                 return next;
+               });
+             }}
+           />
         </div>
       </div>
 
@@ -123,12 +146,35 @@ const MapView = () => {
           </div>
         </div>
         
-        <div className="bg-white p-6 md:p-8 rounded-[2rem] flex flex-col justify-center shadow-[0_20px_40px_rgba(255,255,255,0.05)] min-h-[200px]">
-          <h3 className="text-black font-black uppercase tracking-tighter text-2xl md:text-3xl mb-3 leading-none">Access <br/> Support</h3>
-          <p className="text-zinc-500 text-[10px] md:text-xs font-bold uppercase tracking-wide mb-6 md:mb-8 leading-relaxed">System-wide assistance for floor plan synchronization.</p>
-          <button className="bg-black text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[9px] md:text-[10px] hover:bg-zinc-800 transition-all duration-300 self-start active:scale-95 shadow-lg shadow-black/10">
-             Open Terminal
-          </button>
+        <div className="bg-white p-6 md:p-8 rounded-[2rem] shadow-[0_20px_40px_rgba(255,255,255,0.05)] min-h-[200px]">
+          <h3 className="text-black font-black uppercase tracking-tighter text-2xl md:text-3xl mb-3 leading-none">
+            Classroom <br /> Occupancy
+          </h3>
+          <p className="text-zinc-500 text-[10px] md:text-xs font-bold uppercase tracking-wide mb-6 md:mb-8 leading-relaxed">
+            {normalizedSelectedRoom
+              ? `Room ${normalizedSelectedRoom} • ${floors.find((f) => f.id === activeFloor)?.name}`
+              : 'Select a classroom block to see current presence.'}
+          </p>
+          {!normalizedSelectedRoom ? (
+            <div className="bg-zinc-100 text-zinc-500 px-4 py-3 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-wider">
+              No Classroom Selected
+            </div>
+          ) : occupiedFaculty.length === 0 ? (
+            <div className="bg-zinc-100 text-zinc-700 px-4 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-wider">
+              Empty
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {occupiedFaculty.map((prof) => (
+                <div
+                  key={prof._id}
+                  className="bg-zinc-100 text-black px-4 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-wider"
+                >
+                  {prof.name}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

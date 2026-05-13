@@ -1,4 +1,4 @@
-const FloorMap = ({ highlightedRoom, rooms = [] }) => {
+const FloorMap = ({ highlightedRoom, rooms = [], onRoomSelect }) => {
   const roomNumbers = Array.from(
     new Set(
       rooms
@@ -28,7 +28,11 @@ const FloorMap = ({ highlightedRoom, rooms = [] }) => {
           const isHighlighted = room === normalizedHighlightedRoom;
           const x = 90 + idx * boxWidth + xOffset;
           return (
-            <g key={room} className="cursor-pointer group">
+            <g
+              key={room}
+              className="cursor-pointer group"
+              onClick={() => onRoomSelect?.(room)}
+            >
               <rect
                 x={x}
                 y="50"
@@ -58,7 +62,11 @@ const FloorMap = ({ highlightedRoom, rooms = [] }) => {
           const isHighlighted = room === normalizedHighlightedRoom;
           const x = 90 + idx * boxWidth + xOffset;
           return (
-            <g key={room} className="cursor-pointer group">
+            <g
+              key={room}
+              className="cursor-pointer group"
+              onClick={() => onRoomSelect?.(room)}
+            >
               <rect
                 x={x}
                 y="250"
