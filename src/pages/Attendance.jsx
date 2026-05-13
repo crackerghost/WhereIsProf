@@ -12,49 +12,65 @@ import * as api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 
 const QRScanner = ({ onScan, onClose }) => {
+  const [scanError, setScanError] = useState('');
+
   useEffect(() => {
     const scanner = new Html5Qrcode('qr-reader');
     let mounted = true;
+    let started = false;
+
+    const startWithConfig = async (cameraConfig) => {
+      await scanner.start(
+        cameraConfig,
+        {
+          fps: 10,
+          qrbox: { width: 260, height: 260 },
+          aspectRatio: 1,
+          disableFlip: false,
+        },
+        async (decodedText) => {
+          if (!mounted) return;
+          await scanner.stop().catch(() => {});
+          await scanner.clear().catch(() => {});
+          onScan(decodedText);
+        },
+        () => {}
+      );
+      started = true;
+    };
 
     const startScanner = async () => {
       try {
-        await scanner.start(
-          { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1 },
-          async (decodedText) => {
-            if (!mounted) return;
-            await scanner.stop().catch(() => {});
-            await scanner.clear().catch(() => {});
-            onScan(decodedText);
-          },
-          () => {}
-        );
-      } catch {
-        try {
-          const cameras = await Html5Qrcode.getCameras();
-          if (!cameras?.length) return;
-          await scanner.start(
-            { deviceId: { exact: cameras[0].id } },
-            { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1 },
-            async (decodedText) => {
-              if (!mounted) return;
-              await scanner.stop().catch(() => {});
-              await scanner.clear().catch(() => {});
-              onScan(decodedText);
-            },
-            () => {}
-          );
-        } catch {
+        setScanError('');
+        const cameras = await Html5Qrcode.getCameras();
+        if (cameras?.length) {
+          const rearCamera =
+            cameras.find((cam) => /back|rear|environment/i.test(cam.label || '')) || cameras[0];
+          await startWithConfig({ deviceId: { exact: rearCamera.id } });
           return;
+        }
+        await startWithConfig({ facingMode: { ideal: 'environment' } });
+      } catch (primaryError) {
+        try {
+          await startWithConfig({ facingMode: 'environment' });
+        } catch {
+          if (!mounted) return;
+          const message = primaryError?.message || 'Camera could not be started.';
+          setScanError(`${message} Check browser camera permission and try again.`);
         }
       }
     };
 
-    startScanner();
+    const timeoutId = setTimeout(() => {
+      startScanner();
+    }, 120);
 
     return () => {
       mounted = false;
-      scanner.stop().catch(() => {});
+      clearTimeout(timeoutId);
+      if (started) {
+        scanner.stop().catch(() => {});
+      }
       scanner.clear().catch(() => {});
     };
   }, [onScan]);
@@ -72,6 +88,11 @@ const QRScanner = ({ onScan, onClose }) => {
         </div>
         <div className="p-6">
           <div id="qr-reader" className="rounded-2xl overflow-hidden border border-zinc-800 bg-black aspect-square" />
+          {scanError && (
+            <p className="mt-4 text-red-400 text-xs font-semibold">
+              {scanError}
+            </p>
+          )}
           <div className="mt-4 flex items-center justify-center gap-2 text-zinc-500 text-[10px] uppercase tracking-widest font-black">
             <RiCameraFill /> Align QR in frame
           </div>
