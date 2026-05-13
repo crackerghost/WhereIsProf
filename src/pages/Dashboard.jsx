@@ -3,13 +3,15 @@ import { Search, Filter } from 'lucide-react';
 import { useStatus } from '../hooks/useStatus';
 import { ProfessorCard } from '../features/locator/ProfessorCard';
 import { Input } from '../components/ui';
+import PageSkeleton from '../components/PageSkeleton';
 import * as api from '../services/api';
 
 const Dashboard = () => {
-  const { professors } = useStatus();
+  const { professors, loading } = useStatus();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('All');
   const [departments, setDepartments] = useState([]);
+  const [deptLoading, setDeptLoading] = useState(true);
 
   useEffect(() => {
     const fetchDepts = async () => {
@@ -18,10 +20,14 @@ const Dashboard = () => {
         setDepartments(data);
       } catch (error) {
         console.error("Failed to fetch departments", error);
+      } finally {
+        setDeptLoading(false);
       }
     };
     fetchDepts();
   }, []);
+
+  if (loading || deptLoading) return <PageSkeleton />;
 
   const filteredProfessors = professors.filter((prof) => {
     const departmentNames = (prof.departments?.length

@@ -9,6 +9,7 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import { Card } from '../components/ui';
 import * as api from '../services/api';
+import PageSkeleton from '../components/PageSkeleton';
 
 const Classroom = () => {
   const { user } = useAuth();
@@ -91,7 +92,7 @@ const Classroom = () => {
       });
    }, [sessions, user?.role]);
 
-   const handleSetActiveClass = async () => {
+  const handleSetActiveClass = async () => {
       if (!selectedClassGroup) return;
       try {
          await api.setActiveClassGroup(selectedClassGroup);
@@ -101,7 +102,9 @@ const Classroom = () => {
       } catch (error) {
          console.error('Failed to set active class group', error);
       }
-   };
+  };
+
+  if (loading) return <PageSkeleton />;
 
   return (
     <div className="space-y-10 pb-20">

@@ -13,6 +13,7 @@ import { Card } from '../components/ui';
 import { useAuth } from '../hooks/useAuth';
 import * as api from '../services/api';
 import { getSocket } from '../services/socket';
+import PageSkeleton from '../components/PageSkeleton';
 
 const UpdateDetail = ({ subject, onClose }) => {
   const isImageAttachment = (update) => {
@@ -103,6 +104,7 @@ const Updates = () => {
   const { user } = useAuth();
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [broadcasts, setBroadcasts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const classGroupId = user?.activeClassGroup?._id || user?.activeClassGroup;
 
@@ -115,6 +117,8 @@ const Updates = () => {
         setBroadcasts(data);
       } catch (error) {
         console.error('Failed to load broadcasts', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -175,6 +179,8 @@ const Updates = () => {
       return () => clearTimeout(timeoutId);
     }
   }, [subjectUpdates, selectedSubject]);
+
+  if (loading) return <PageSkeleton />;
 
   return (
     <div className="space-y-10 pb-20 relative">

@@ -4,6 +4,7 @@ import FloorMap from '../features/map/FloorMap';
 import { Layers } from 'lucide-react';
 import * as api from '../services/api';
 import { useStatus } from '../hooks/useStatus';
+import PageSkeleton from '../components/PageSkeleton';
 
 const MapView = () => {
   const { professors } = useStatus();
@@ -11,6 +12,7 @@ const MapView = () => {
   const [activeFloor, setActiveFloor] = useState(1);
   const [highlightedRoom, setHighlightedRoom] = useState(null);
   const [rooms, setRooms] = useState([]);
+  const [loadingRooms, setLoadingRooms] = useState(true);
 
   useEffect(() => {
     const floor = parseInt(searchParams.get('floor'));
@@ -35,11 +37,14 @@ const MapView = () => {
   useEffect(() => {
     const fetchRooms = async () => {
       try {
+        setLoadingRooms(true);
         const { data } = await api.getRooms(activeFloor);
         setRooms(data);
       } catch (error) {
         console.error('Failed to fetch rooms', error);
         setRooms([]);
+      } finally {
+        setLoadingRooms(false);
       }
     };
 
@@ -76,6 +81,8 @@ const MapView = () => {
     const profFloor = Number.isFinite(Number(prof.classroomFloor)) ? Number(prof.classroomFloor) : null;
     return profRoom && normalizedSelectedRoom && profRoom === normalizedSelectedRoom && profFloor === activeFloor;
   });
+
+  if (loadingRooms) return <PageSkeleton />;
 
   return (
     <div className="space-y-8 pb-20">

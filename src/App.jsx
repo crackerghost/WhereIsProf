@@ -1,11 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
 import { AuthProvider } from './context/AuthProvider';
 import { useAuth } from './hooks/useAuth';
 import { StatusProvider } from './context/StatusProvider';
 import { Layout } from './components/Layout';
-import GlobalSkeleton from './components/GlobalSkeleton';
-import { subscribeNetworkActivity } from './services/api';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -22,7 +19,7 @@ function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <GlobalSkeleton />;
+    return <div className="min-h-screen bg-black flex items-center justify-center text-white font-black uppercase tracking-[0.4em]">Initializing...</div>;
   }
 
   if (!user) {
@@ -35,7 +32,7 @@ function ProtectedRoute({ children }) {
 function AppRoutes() {
   const { user, loading } = useAuth();
 
-  if (loading) return <GlobalSkeleton />;
+  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white font-black uppercase tracking-[0.4em]">Initializing...</div>;
 
   return (
     <Routes>
@@ -119,20 +116,10 @@ function AppRoutes() {
 }
 
 function App() {
-  const [networkLoading, setNetworkLoading] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = subscribeNetworkActivity((isLoading) => {
-      setNetworkLoading(isLoading);
-    });
-    return unsubscribe;
-  }, []);
-
   return (
     <AuthProvider>
       <StatusProvider>
         <Router>
-          {networkLoading ? <GlobalSkeleton overlay /> : null}
           <AppRoutes />
         </Router>
       </StatusProvider>

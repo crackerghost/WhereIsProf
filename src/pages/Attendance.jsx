@@ -11,6 +11,7 @@ import { Card, Button, Input } from '../components/ui';
 import * as api from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { getSocket } from '../services/socket';
+import PageSkeleton from '../components/PageSkeleton';
 
 const QRScanner = ({ onScan, onClose }) => {
   const [scanError, setScanError] = useState('');
@@ -138,6 +139,7 @@ const Attendance = () => {
   const [studentSummary, setStudentSummary] = useState([]);
   const [busy, setBusy] = useState(false);
   const [showQrFullscreen, setShowQrFullscreen] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const qrImageUrl = useMemo(() => {
     if (!qrToken) return '';
@@ -161,10 +163,16 @@ const Attendance = () => {
   }, [user?.role]);
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      loadTimetable().catch(() => {});
-      loadAttendance().catch(() => {});
-      loadStudentSummary().catch(() => {});
+    const timeoutId = setTimeout(async () => {
+      try {
+        await Promise.all([
+          loadTimetable().catch(() => {}),
+          loadAttendance().catch(() => {}),
+          loadStudentSummary().catch(() => {}),
+        ]);
+      } finally {
+        setInitialLoading(false);
+      }
     }, 0);
     return () => clearTimeout(timeoutId);
   }, [loadTimetable, loadAttendance, loadStudentSummary]);
@@ -263,6 +271,8 @@ const Attendance = () => {
         })),
     [attendanceRows]
   );
+
+  if (initialLoading) return <PageSkeleton />;
 
   return (
     <div className="space-y-8 pb-20">

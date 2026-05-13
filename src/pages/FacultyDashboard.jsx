@@ -18,6 +18,7 @@ import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
 import * as api from '../services/api';
 import { getSocket, resetSocket } from '../services/socket';
+import PageSkeleton from '../components/PageSkeleton';
 
 const StatusBadge = ({ status }) => {
   const configs = {
@@ -220,18 +221,7 @@ const FacultyDashboard = () => {
   };
 
   if (loading || !profProfile) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center flex-col space-y-4">
-        <div className="h-2 w-48 bg-zinc-900 rounded-full overflow-hidden">
-           <motion.div 
-             animate={{ x: [-200, 200] }}
-             transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-             className="h-full w-24 bg-white" 
-           />
-        </div>
-        <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em]">Establishing Control Link...</span>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   return (
