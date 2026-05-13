@@ -1,5 +1,7 @@
 import { io } from 'socket.io-client';
 
+const SOCKET_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api').replace(/\/api\/?$/, '');
+
 let socketInstance = null;
 let socketToken = null;
 
@@ -12,7 +14,7 @@ export const getSocket = (token) => {
   }
 
   if (!socketInstance) {
-    socketInstance = io('http://localhost:5001', {
+    socketInstance = io(SOCKET_BASE_URL, {
       auth: normalizedToken ? { token: normalizedToken } : {},
       transports: ['websocket', 'polling'],
     });
