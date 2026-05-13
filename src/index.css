@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --color-primary: #ffffff;
+  --color-background: #000000;
+  --color-surface: #0a0a0a;
+  --color-surface-hover: #141414;
+  --color-border: #1f1f1f;
+  --color-muted: #737373;
+}
+
+:root {
+  font-family: "Poppins", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+  color: #ffffff;
+  background-color: #000000;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #000000;
+  color: #ffffff;
+  font-family: "Poppins", sans-serif;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.app-ambient-glow {
+  position: absolute;
+  width: 42vw;
+  height: 42vw;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.12;
+  pointer-events: none;
+  animation: ambientFloat 16s ease-in-out infinite;
+}
+
+.app-ambient-glow.left {
+  left: -10vw;
+  top: -8vw;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, transparent 70%);
+}
+
+.app-ambient-glow.right {
+  right: -14vw;
+  bottom: -12vw;
+  background: radial-gradient(circle, rgba(120, 120, 120, 0.9) 0%, transparent 70%);
+  animation-delay: -6s;
+}
+
+@keyframes ambientFloat {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(3vw, 2vh, 0) scale(1.06); }
+}
+
+.auth-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(circle at center, black 30%, transparent 95%);
+  -webkit-mask-image: radial-gradient(circle at center, black 30%, transparent 95%);
+}
+
+.auth-grid-line-h {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.9) 45%, transparent 100%);
+  animation: authLineH 6s linear infinite;
+}
+
+.auth-grid-line-v {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.9) 45%, transparent 100%);
+  animation: authLineV 6s linear infinite;
+}
+
+@keyframes authLineH {
+  0% { top: 0%; opacity: 0; }
+  8% { opacity: 1; }
+  50% { opacity: 0.9; }
+  92% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes authLineV {
+  0% { left: 0%; opacity: 0; }
+  8% { opacity: 1; }
+  50% { opacity: 0.9; }
+  92% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+/* Ensure all elements inherit the font */
+* {
+  font-family: "Poppins", sans-serif;
+}
+
+/* Custom Scrollbar for Dark Mode */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f1f1f;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a2a2a;
+}

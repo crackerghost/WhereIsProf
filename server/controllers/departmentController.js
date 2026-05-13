@@ -1,0 +1,41 @@
+const Department = require('../models/Department');
+
+// @desc    Create department
+// @route   POST /api/departments
+// @access  Private/Admin
+const createDepartment = async (req, res) => {
+  try {
+    const { name, code } = req.body;
+
+    if (!name || !code) {
+      return res.status(400).json({ message: 'Name and code are required' });
+    }
+
+    const existing = await Department.findOne({ $or: [{ name }, { code }] });
+    if (existing) {
+      return res.status(400).json({ message: 'Department already exists' });
+    }
+
+    const department = await Department.create({ name, code });
+    res.status(201).json(department);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get departments
+// @route   GET /api/departments
+// @access  Public
+const getDepartments = async (req, res) => {
+  try {
+    const departments = await Department.find({}).sort({ name: 1 });
+    res.json(departments);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  createDepartment,
+  getDepartments,
+};
