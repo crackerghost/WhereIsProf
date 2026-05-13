@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
 import {
   RiArrowRightLine,
   RiShieldUserFill,
@@ -10,14 +10,10 @@ import {
 } from 'react-icons/ri';
 
 const Landing = () => {
-  const roadmapRef = useRef(null);
   const heroRef = useRef(null);
   const modelRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: roadmapRef,
-    offset: ['start 85%', 'end 20%'],
-  });
-  const roadmapPathLength = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  const roadmapGridRef = useRef(null);
+  const [gridMeta, setGridMeta] = useState({ cols: 28, rows: 18 });
 
   const handleHeroMouseMove = (event) => {
     if (!heroRef.current || !modelRef.current) return;
@@ -46,6 +42,26 @@ const Landing = () => {
     { title: 'QR Attendance', detail: 'Faculty starts day session; student scans valid rotating QR token.' },
     { title: 'Analytics Layer', detail: 'Present, absent, and subject-wise attendance percentage tracking.' },
   ];
+  useEffect(() => {
+    if (!roadmapGridRef.current || typeof ResizeObserver === 'undefined') return;
+    const cellSize = 34;
+    const update = () => {
+      const rect = roadmapGridRef.current.getBoundingClientRect();
+      const cols = Math.max(1, Math.ceil(rect.width / cellSize));
+      const rows = Math.max(1, Math.ceil(rect.height / cellSize));
+      setGridMeta({ cols, rows });
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(roadmapGridRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const gridColumns = gridMeta.cols;
+  const animatedGridCells = Array.from({ length: gridMeta.cols * gridMeta.rows }, (_, i) => i).filter((cell) => {
+    const row = Math.floor(cell / gridMeta.cols);
+    return row < 2 || row >= gridMeta.rows - 2;
+  });
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-black">
@@ -153,7 +169,7 @@ const Landing = () => {
             </div>
           </div>
 
-          <section ref={roadmapRef} className="max-w-6xl mx-auto mt-10 md:mt-14">
+          <section className="max-w-6xl mx-auto mt-10 md:mt-14">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
                 { icon: RiPulseLine, label: 'Realtime Stream', value: 'Live Socket Status' },
@@ -179,72 +195,88 @@ const Landing = () => {
 
             <div className="relative left-1/2 right-1/2 w-screen -translate-x-1/2 rounded-none bg-white/[0.04] backdrop-blur-sm shadow-[0_24px_90px_rgba(0,0,0,0.5)] p-4 md:p-8 overflow-hidden z-30">
               <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.06),transparent_20%,transparent_80%,rgba(255,255,255,0.05))] pointer-events-none" />
-              <div className="relative h-[980px] md:h-[1180px] z-30">
-                <svg
-                  viewBox="0 0 1000 1600"
-                  className="absolute inset-0 h-full w-full"
-                  preserveAspectRatio="none"
-                >
-                  <path
-                    d="M 500 70 C 210 70, 210 360, 500 360 C 790 360, 790 660, 500 660 C 210 660, 210 960, 500 960 C 790 960, 790 1260, 500 1260 C 210 1260, 210 1530, 500 1530"
-                    fill="none"
-                    stroke="#0a0a0a"
-                    strokeWidth="108"
-                    strokeLinecap="round"
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:34px_34px] pointer-events-none opacity-35" />
+              <div
+                ref={roadmapGridRef}
+                className="absolute inset-0 pointer-events-none grid auto-rows-[34px] opacity-35"
+                style={{ gridTemplateColumns: `repeat(${gridMeta.cols}, minmax(0, 1fr))` }}
+              >
+                {animatedGridCells.map((cell) => (
+                  <motion.span
+                    key={cell}
+                    className="border-r border-b border-white/0"
+                    animate={{
+                      backgroundColor: ['rgba(255,255,255,0)', 'rgba(255,255,255,1)', 'rgba(255,255,255,0)'],
+                    }}
+                    transition={{
+                      duration: 0.5,
+                      delay: (() => {
+                        const row = Math.floor(cell / gridColumns);
+                        const col = cell % gridColumns;
+                        const serpentineCol = row % 2 === 0 ? col : (gridColumns - 1 - col);
+                        return row * 0.18 + serpentineCol * 0.04;
+                      })(),
+                      repeat: Infinity,
+                      repeatDelay: 0.8,
+                      ease: 'linear',
+                    }}
                   />
-                  <path
-                    d="M 500 70 C 210 70, 210 360, 500 360 C 790 360, 790 660, 500 660 C 210 660, 210 960, 500 960 C 790 960, 790 1260, 500 1260 C 210 1260, 210 1530, 500 1530"
-                    fill="none"
-                    stroke="#27272a"
-                    strokeWidth="96"
-                    strokeLinecap="round"
-                  />
-                  <motion.path
-                    d="M 500 70 C 210 70, 210 360, 500 360 C 790 360, 790 660, 500 660 C 210 660, 210 960, 500 960 C 790 960, 790 1260, 500 1260 C 210 1260, 210 1530, 500 1530"
-                    fill="none"
-                    stroke="#d4d4d8"
-                    strokeWidth="4"
-                    strokeDasharray="14 10"
-                    strokeLinecap="round"
-                    style={{ pathLength: roadmapPathLength }}
-                  />
-                </svg>
-
-                {[
-                  { x: '50%', y: '6%', align: 'center' },
-                  { x: '50%', y: '24%', align: 'right' },
-                  { x: '50%', y: '42%', align: 'left' },
-                  { x: '50%', y: '60%', align: 'right' },
-                  { x: '50%', y: '78%', align: 'left' },
-                ].map((pos, idx) => (
-                  <motion.div
-                    key={roadmap[idx].title}
-                    initial={{ opacity: 0, y: 24, scale: 0.96 }}
-                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                    viewport={{ once: false, amount: 0.35 }}
-                    transition={{ duration: 0.45, delay: idx * 0.06 }}
-                    className="absolute z-40"
-                    style={{ left: pos.x, top: pos.y, transform: 'translate(-50%, -50%)' }}
-                  >
-                    <div className="relative h-14 w-14 rounded-full bg-white text-black flex items-center justify-center text-sm font-black shadow-[0_0_35px_rgba(255,255,255,0.28)]">
-                      <div className="absolute inset-0 rounded-full border-2 border-indigo-400/80" />
-                      <div className="absolute inset-[6px] rounded-full border border-indigo-300/50" />
-                      <span className="relative z-10">{idx + 1}</span>
-                    </div>
-                    <div
-                      className={`absolute top-1/2 -translate-y-1/2 w-[200px] md:w-[260px] rounded-2xl bg-black/65 backdrop-blur-md shadow-[0_14px_40px_rgba(0,0,0,0.45)] p-4 ${
-                        pos.align === 'left'
-                          ? 'right-[62px] text-right'
-                          : pos.align === 'right'
-                            ? 'left-[62px] text-left'
-                            : 'left-1/2 -translate-x-1/2 mt-[70px] text-center'
+                ))}
+              </div>
+              <div className="relative z-30 w-full py-12 md:py-20">
+                <div className="relative max-w-6xl mx-auto space-y-6 md:space-y-10">
+                  {roadmap.map((step, idx) => (
+                    <motion.div
+                      key={step.title}
+                      initial={{ opacity: 0, y: 26 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: false, amount: 0.35 }}
+                      transition={{ duration: 0.45, delay: idx * 0.08 }}
+                      className={`relative ${
+                        idx % 2 === 0 ? 'md:pr-40' : 'md:pl-40'
                       }`}
                     >
-                      <p className="text-white text-xs md:text-sm font-black uppercase tracking-tight">{roadmap[idx].title}</p>
-                      <p className="text-zinc-400 text-[11px] mt-1.5 leading-relaxed">{roadmap[idx].detail}</p>
-                    </div>
-                  </motion.div>
-                ))}
+                      <div
+                        className="relative rounded-[26px] border border-white/70 bg-white/[0.08] backdrop-blur-xl shadow-[0_22px_60px_rgba(0,0,0,0.5)] px-6 py-5 md:px-9 md:py-8 min-h-[120px] md:min-h-[150px] overflow-hidden"
+                        style={{ width: `${Math.min(62 + idx * 9, 96)}%` }}
+                      >
+                        <div className="absolute inset-0 bg-[linear-gradient(160deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.05)_28%,rgba(0,0,0,0.22)_100%)] pointer-events-none" />
+                        <div className="absolute top-0 left-0 w-full h-px bg-white/60 pointer-events-none" />
+                        <p className="text-white text-base md:text-2xl font-black uppercase tracking-tight leading-tight">
+                          {step.title}
+                        </p>
+                        <p className="text-zinc-400 text-sm md:text-lg mt-3 leading-relaxed">
+                          {step.detail}
+                        </p>
+                      </div>
+
+                      <div className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 flex-col items-center">
+                        <div className="h-24 w-px bg-zinc-700/70 mb-3" />
+                        <div className="h-16 w-16 rotate-45 rounded-2xl bg-white text-black shadow-[0_14px_32px_rgba(255,255,255,0.3)] flex items-center justify-center">
+                          <span className="-rotate-45 text-2xl font-black">{idx + 1}</span>
+                        </div>
+                        {idx < roadmap.length - 1 && (
+                          <>
+                            <div className="h-10 w-px bg-zinc-700/70 mt-3" />
+                            <span className="block w-3.5 h-3.5 border-r-2 border-b-2 border-zinc-400 rotate-45 -mt-[2px]" />
+                          </>
+                        )}
+                      </div>
+
+                      <div className="md:hidden mt-4 flex items-center gap-3">
+                        <div className="h-10 w-10 rotate-45 rounded-xl bg-white text-black flex items-center justify-center">
+                          <span className="-rotate-45 text-sm font-black">{idx + 1}</span>
+                        </div>
+                        {idx < roadmap.length - 1 && (
+                          <div className="flex items-center gap-1 text-zinc-400">
+                            <span className="block w-8 h-px bg-zinc-600" />
+                            <span className="block w-2.5 h-2.5 border-r-2 border-b-2 border-zinc-400 rotate-[-45deg]" />
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             </div>
           </section>

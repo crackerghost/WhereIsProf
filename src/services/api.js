@@ -7,15 +7,71 @@ const API = axios.create({
   baseURL: API_BASE_URL,
 });
 
+const networkListeners = new Set();
+let pendingRequests = 0;
+
+const notifyNetworkActivity = () => {
+  const isLoading = pendingRequests > 0;
+  networkListeners.forEach((listener) => {
+    try {
+      listener(isLoading, pendingRequests);
+    } catch {
+      // no-op
+    }
+  });
+};
+
+const increasePending = () => {
+  pendingRequests += 1;
+  notifyNetworkActivity();
+};
+
+const decreasePending = () => {
+  pendingRequests = Math.max(0, pendingRequests - 1);
+  notifyNetworkActivity();
+};
+
+export const subscribeNetworkActivity = (listener) => {
+  if (typeof listener !== 'function') return () => {};
+  networkListeners.add(listener);
+  listener(pendingRequests > 0, pendingRequests);
+  return () => networkListeners.delete(listener);
+};
+
 // Add a request interceptor to include JWT token
 API.interceptors.request.use((req) => {
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch {
+      return null;
+    }
+  })();
   req.headers['X-Device-Fingerprint'] = getDeviceFingerprint();
   if (user && user.token) {
     req.headers.Authorization = `Bearer ${user.token}`;
   }
+  if (!req.__skipGlobalLoader) {
+    req.__trackGlobalLoader = true;
+    increasePending();
+  }
   return req;
 });
+
+API.interceptors.response.use(
+  (response) => {
+    if (response?.config?.__trackGlobalLoader) {
+      decreasePending();
+    }
+    return response;
+  },
+  (error) => {
+    if (error?.config?.__trackGlobalLoader) {
+      decreasePending();
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Auth API
 export const login = (data) => API.post('/auth/login', { ...data, deviceFingerprint: getDeviceFingerprint() });
