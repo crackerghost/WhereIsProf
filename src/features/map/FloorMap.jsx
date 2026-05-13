@@ -1,4 +1,4 @@
-const FloorMap = ({ highlightedRoom, rooms = [], onRoomSelect }) => {
+const FloorMap = ({ highlightedRoom, rooms = [], onRoomSelect, occupiedRooms = new Set() }) => {
   const roomNumbers = Array.from(
     new Set(
       rooms
@@ -26,6 +26,7 @@ const FloorMap = ({ highlightedRoom, rooms = [], onRoomSelect }) => {
         {/* Rooms Top */}
         {roomNumbers.slice(0, Math.ceil(roomNumbers.length / 2)).map((room, idx) => {
           const isHighlighted = room === normalizedHighlightedRoom;
+          const isOccupied = occupiedRooms.has(room);
           const x = 90 + idx * boxWidth + xOffset;
           return (
             <g
@@ -38,9 +39,9 @@ const FloorMap = ({ highlightedRoom, rooms = [], onRoomSelect }) => {
                 y="50"
                 width={roomWidth}
                 height="150"
-                fill={isHighlighted ? '#ffffff' : '#000000'}
-                stroke={isHighlighted ? '#ffffff' : '#18181b'}
-                strokeWidth={isHighlighted ? '2' : '1'}
+                fill={isHighlighted ? '#ffffff' : isOccupied ? '#052e16' : '#000000'}
+                stroke={isHighlighted ? '#ffffff' : isOccupied ? '#16a34a' : '#18181b'}
+                strokeWidth={isHighlighted || isOccupied ? '2' : '1'}
                 className="transition-all duration-300"
               />
               <text
@@ -48,7 +49,7 @@ const FloorMap = ({ highlightedRoom, rooms = [], onRoomSelect }) => {
                 y="130"
                 textAnchor="middle"
                 className={`text-[10px] font-black tracking-tighter pointer-events-none uppercase ${
-                  isHighlighted ? 'fill-black' : 'fill-zinc-700 group-hover:fill-zinc-400'
+                  isHighlighted ? 'fill-black' : isOccupied ? 'fill-green-300 group-hover:fill-green-200' : 'fill-zinc-700 group-hover:fill-zinc-400'
                 }`}
               >
                 {room || 'TBD'}
@@ -60,6 +61,7 @@ const FloorMap = ({ highlightedRoom, rooms = [], onRoomSelect }) => {
         {/* Rooms Bottom */}
         {roomNumbers.slice(Math.ceil(roomNumbers.length / 2)).map((room, idx) => {
           const isHighlighted = room === normalizedHighlightedRoom;
+          const isOccupied = occupiedRooms.has(room);
           const x = 90 + idx * boxWidth + xOffset;
           return (
             <g
@@ -72,9 +74,9 @@ const FloorMap = ({ highlightedRoom, rooms = [], onRoomSelect }) => {
                 y="250"
                 width={roomWidth}
                 height="150"
-                fill={isHighlighted ? '#ffffff' : '#000000'}
-                stroke={isHighlighted ? '#ffffff' : '#18181b'}
-                strokeWidth={isHighlighted ? '2' : '1'}
+                fill={isHighlighted ? '#ffffff' : isOccupied ? '#052e16' : '#000000'}
+                stroke={isHighlighted ? '#ffffff' : isOccupied ? '#16a34a' : '#18181b'}
+                strokeWidth={isHighlighted || isOccupied ? '2' : '1'}
                 className="transition-all duration-300"
               />
               <text
@@ -82,7 +84,7 @@ const FloorMap = ({ highlightedRoom, rooms = [], onRoomSelect }) => {
                 y="330"
                 textAnchor="middle"
                 className={`text-[10px] font-black tracking-tighter pointer-events-none uppercase ${
-                  isHighlighted ? 'fill-black' : 'fill-zinc-700 group-hover:fill-zinc-400'
+                  isHighlighted ? 'fill-black' : isOccupied ? 'fill-green-300 group-hover:fill-green-200' : 'fill-zinc-700 group-hover:fill-zinc-400'
                 }`}
               >
                 {room || 'TBD'}

@@ -172,7 +172,7 @@ const emitFacultyStatuses = async () => {
 
 setInterval(() => {
   emitFacultyStatuses().catch(() => {});
-}, 60000);
+}, 15000);
 
 emitFacultyStatuses().catch(() => {});
 

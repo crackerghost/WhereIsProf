@@ -54,8 +54,24 @@ const MapView = () => {
   ];
 
   const normalizedSelectedRoom = highlightedRoom ? String(highlightedRoom).trim() : '';
+  const activeFacultyByRoom = professors
+    .filter((prof) => {
+      const status = String(prof.status || '').trim();
+      if (!status || status === 'logoff') return false;
+      const room = prof.classroomNumber ? String(prof.classroomNumber).trim() : '';
+      const floor = Number.isFinite(Number(prof.classroomFloor)) ? Number(prof.classroomFloor) : null;
+      return room && floor === activeFloor;
+    })
+    .reduce((acc, prof) => {
+      const room = String(prof.classroomNumber).trim();
+      if (!acc.has(room)) acc.set(room, []);
+      acc.get(room).push(prof);
+      return acc;
+    }, new Map());
+  const occupiedRooms = new Set(activeFacultyByRoom.keys());
   const occupiedFaculty = professors.filter((prof) => {
-    if (prof.status !== 'in_classroom') return false;
+    const status = String(prof.status || '').trim();
+    if (!status || status === 'logoff') return false;
     const profRoom = prof.classroomNumber ? String(prof.classroomNumber).trim() : '';
     const profFloor = Number.isFinite(Number(prof.classroomFloor)) ? Number(prof.classroomFloor) : null;
     return profRoom && normalizedSelectedRoom && profRoom === normalizedSelectedRoom && profFloor === activeFloor;
@@ -111,6 +127,7 @@ const MapView = () => {
            <FloorMap
              highlightedRoom={highlightedRoom}
              rooms={rooms}
+             occupiedRooms={occupiedRooms}
              onRoomSelect={(room) => {
                const roomValue = String(room).trim();
                setHighlightedRoom(roomValue);
@@ -141,6 +158,13 @@ const MapView = () => {
                <div className="flex items-center">
                   <div className="w-3 h-3 bg-zinc-800 rounded-sm mr-3 border border-zinc-700"></div>
                   <span className="text-[9px] md:text-[10px] text-zinc-600 font-black uppercase tracking-tighter">Standard Node</span>
+               </div>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-2xl border border-zinc-900 transition-colors hover:border-zinc-800">
+               <span className="text-zinc-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest">Occupied</span>
+               <div className="flex items-center">
+                  <div className="w-3 h-3 bg-green-900 rounded-sm mr-3 border border-green-500"></div>
+                  <span className="text-[9px] md:text-[10px] text-zinc-300 font-black uppercase tracking-tighter">Active Faculty Room</span>
                </div>
             </div>
           </div>
