@@ -12,7 +12,8 @@ import {
   Calendar, 
   FileUp, 
   Users,
-  ArrowRight
+  ArrowRight,
+  Download
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
@@ -616,8 +617,33 @@ const FacultyDashboard = () => {
                         />
                         <p className="text-zinc-400 text-[10px] font-bold uppercase tracking-wider truncate">{broadcast.fileName || 'Image'}</p>
                       </a>
+                    ) : broadcast.type === 'file' ? (
+                      <a
+                        href={broadcast.content}
+                        target="_blank"
+                        rel="noreferrer"
+                        download={broadcast.fileName || 'attachment'}
+                        className="p-4 md:p-5 bg-white text-black rounded-2xl flex items-center justify-between group cursor-pointer hover:bg-zinc-200 transition-colors"
+                      >
+                        <div className="flex items-center space-x-4 min-w-0">
+                          <div className="bg-black p-2 rounded-xl text-white shrink-0">
+                            <Download size={18} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[10px] md:text-xs font-black uppercase tracking-tight truncate">
+                              {broadcast.fileName || 'Attachment'}
+                            </p>
+                            <span className="text-[8px] md:text-[9px] font-bold opacity-50 uppercase">
+                              {broadcast.fileSize || ''}
+                            </span>
+                          </div>
+                        </div>
+                        <ArrowRight size={18} className="shrink-0 ml-2" />
+                      </a>
                     ) : (
-                      <p className="text-zinc-400 text-xs leading-relaxed truncate">{broadcast.content || broadcast.fileName}</p>
+                      <div className="p-4 md:p-5 bg-zinc-900/50 border border-zinc-800 rounded-2xl">
+                        <p className="text-zinc-300 text-xs md:text-sm leading-relaxed">{broadcast.content}</p>
+                      </div>
                     )}
                   </Card>
                 ))}
