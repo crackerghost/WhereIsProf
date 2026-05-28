@@ -41,13 +41,18 @@ const classSessionSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    batch: {
+      type: String,
+      default: '',
+      trim: true,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-classSessionSchema.index({ classGroup: 1, day: 1, startTime: 1, endTime: 1, roomNumber: 1 });
+classSessionSchema.index({ classGroup: 1, day: 1, startTime: 1, endTime: 1, roomNumber: 1, batch: 1 });
 
 const ClassSession = mongoose.model('ClassSession', classSessionSchema);
 

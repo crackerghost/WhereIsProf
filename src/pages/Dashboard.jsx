@@ -46,10 +46,10 @@ const Dashboard = () => {
       <div className="shrink-0 space-y-6 md:space-y-8">
         <div className="max-w-3xl space-y-3 md:space-y-4">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tighter leading-none uppercase">
-            Faculty <br className="hidden sm:block"/> <span className="text-zinc-500">Intelligence</span>
+            Faculty <br className="hidden sm:block"/> <span className="text-zinc-500">Directory</span>
           </h1>
           <p className="text-zinc-500 text-sm md:text-lg font-medium max-w-xl">
-            Check live availability and precise campus locations for all faculty members.
+            Live availability and campus location for every faculty member.
           </p>
         </div>
         
@@ -90,7 +90,7 @@ const Dashboard = () => {
 
         {filteredProfessors.length === 0 && (
           <div className="text-center py-20 bg-zinc-950/50 rounded-2xl border border-dashed border-zinc-800">
-            <p className="text-zinc-600 text-xs md:text-lg font-bold uppercase tracking-widest">Zero matches found</p>
+            <p className="text-zinc-600 text-xs md:text-lg font-bold uppercase tracking-widest">No faculty match your search</p>
           </div>
         )}
       </div>

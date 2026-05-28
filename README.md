@@ -23,6 +23,10 @@ Real-time campus faculty locator, classroom updates, and QR-based attendance pla
   - Student scans QR and attendance is marked securely
   - Faculty gets live present/absent summary and attendee list
 - Student-only device binding (single-device session control by fingerprint)
+- Face-enforced attendance gate for students:
+  - Face enrollment endpoint stores encrypted face template vectors (not raw image blobs)
+  - Liveness + face verification required before QR scan
+  - One-time face verification token is required by backend attendance scan API
 
 ---
 
@@ -37,6 +41,7 @@ WhereIsProf/
 │  ├─ routes/
 │  ├─ config/
 │  └─ server.js
+├─ face-service/         # Face verification service (FastAPI + InsightFace + liveness)
 └─ README.md
 ```
 
@@ -52,21 +57,40 @@ WhereIsProf/
 
 ## Environment Variables
 
+Create env files from examples:
+
+```bash
+cp .env.example .env
+cp server/.env.example server/.env
+cp face-service/.env.example face-service/.env
+```
+
+### Frontend (`.env`)
+
+```env
+VITE_API_BASE_URL=http://localhost:5001/api
+```
+
 ### Backend (`server/.env`)
 
 ```env
 PORT=5001
 MONGO_URI=mongodb://127.0.0.1:27017/whereisprof
-JWT_SECRET=replace_with_secure_secret
+JWT_SECRET=replace_with_secure_random_secret
 
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+FACE_SERVICE_URL=http://localhost:8000
+FACE_SERVICE_SECRET=replace_with_shared_face_secret
 ```
 
-### Frontend (`.env`) *(optional)*
+### Face service (`face-service/.env`)
 
-No mandatory env vars currently required for frontend in this setup.
+```env
+FACE_SERVICE_SECRET=replace_with_shared_face_secret
+FACE_MATCH_THRESHOLD=0.52
+```
 
 ---
 
@@ -85,11 +109,50 @@ cd server
 npm install
 ```
 
+### 3) Face service
+
+Option A (recommended): Docker
+
+```bash
+cd face-service
+docker build -t whereisprof-face-service .
+```
+
+Option B: Python virtual environment
+
+```bash
+cd face-service
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
 ---
 
 ## Run Locally
 
-### Start backend
+Start in this order.
+
+### 1) Start face service
+
+Option A (Docker):
+
+```bash
+cd face-service
+docker run --rm -p 8000:8000 --env-file .env whereisprof-face-service
+```
+
+Option B (venv):
+
+```bash
+cd face-service
+source .venv/bin/activate
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+Face service runs on `http://localhost:8000`.
+
+### 2) Start backend
 
 ```bash
 cd server
@@ -98,7 +161,7 @@ npm run dev
 
 Backend runs on `http://localhost:5001`.
 
-### Start frontend
+### 3) Start frontend
 
 ```bash
 # from project root

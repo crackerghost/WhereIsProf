@@ -43,15 +43,48 @@ const userSchema = new mongoose.Schema(
     cabinRoomNumber: {
       type: String,
     },
+    currentLocationRoomNumber: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    currentLocationFloor: {
+      type: Number,
+      default: null,
+    },
     status: {
       type: String,
       enum: ['cabin', 'busy', 'logoff', 'in_classroom', 'available', 'in-class'],
       default: 'logoff',
     },
+    customStatusMessage: {
+      type: String,
+      trim: true,
+      maxlength: 80,
+      default: '',
+    },
     activeDeviceFingerprint: {
       type: String,
       trim: true,
       default: null,
+    },
+    faceTemplate: {
+      type: [Number],
+      default: null,
+    },
+    faceEnrolledAt: {
+      type: Date,
+      default: null,
+    },
+    faceEnrollmentVersion: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    faceEnrollmentStatus: {
+      type: String,
+      enum: ['not_enrolled', 'enrolled'],
+      default: 'not_enrolled',
     },
   },
   {

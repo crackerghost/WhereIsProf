@@ -7,3 +7,21 @@ services:
     startCommand: npm start
     autoDeploy: true
     healthCheckPath: /
+    envVars:
+      - key: FACE_SERVICE_URL
+        sync: false
+      - key: FACE_SERVICE_SECRET
+        sync: false
+
+  - type: web
+    name: whereisprof-face-service
+    runtime: docker
+    rootDir: face-service
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: FACE_SERVICE_SECRET
+        sync: false
+      - key: FACE_MATCH_THRESHOLD
+        value: "0.52"

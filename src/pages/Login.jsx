@@ -2,12 +2,18 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Card, Button, Input } from '../components/ui';
-import { ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react';
+import { ShieldCheck, ArrowRight, AlertCircle, Eye, EyeOff } from 'lucide-react';
+
+const isStrongPassword = (password) => {
+  const value = String(password || '');
+  return value.length >= 6 && /[A-Z]/.test(value) && value.includes('@');
+};
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('student');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -16,6 +22,10 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (!isStrongPassword(password)) {
+      setError('Password must be at least 6 characters, include one uppercase letter, and include @');
+      return;
+    }
     setLoading(true);
     
     const result = await login(email, password, role);
@@ -41,7 +51,7 @@ const Login = () => {
             <ShieldCheck className="h-8 w-8 text-black" />
           </div>
           <h1 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
-            Secure <br/><span className="text-zinc-600">Access</span>
+            Sign <br/><span className="text-zinc-600">In</span>
           </h1>
         </div>
 
@@ -78,7 +88,7 @@ const Login = () => {
 
           <div className="space-y-4">
             <Input
-              label="Identifier"
+              label="Email"
               type="email"
               placeholder={role === 'faculty' ? 'faculty@college.edu' : 'student@college.edu'}
               value={email}
@@ -88,16 +98,28 @@ const Login = () => {
               className="bg-black border-zinc-900"
             />
 
-            <Input
-              label="Secret"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-              className="bg-black border-zinc-900"
-            />
+            <div className="space-y-1.5 w-full">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 ml-1">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="w-full px-4 py-2.5 pr-11 bg-black/80 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white focus:border-white transition-all duration-300"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 px-3 text-zinc-500 hover:text-white"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              <p className="text-[10px] uppercase tracking-widest text-zinc-600 ml-1">Min 6 chars, one uppercase, must include @</p>
+            </div>
           </div>
 
           <Button 
@@ -105,7 +127,7 @@ const Login = () => {
             disabled={loading}
             className="w-full h-14 text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center group"
           >
-            {loading ? 'Authorizing...' : 'Authorize'}
+            {loading ? 'Signing in...' : 'Sign In'}
             {!loading && <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />}
           </Button>
         </form>
@@ -114,7 +136,7 @@ const Login = () => {
           <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest">
             New here?{' '}
             <Link to="/register" className="text-white hover:text-zinc-300 transition-colors">
-              Establish Account
+              Create an account
             </Link>
           </p>
         </div>

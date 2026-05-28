@@ -52,7 +52,7 @@ const getClassGroups = async (req, res) => {
 // @access  Private/Faculty
 const createClassSession = async (req, res) => {
   try {
-    const { classGroupId, subject, day, startTime, endTime, floor, roomNumber } = req.body;
+    const { classGroupId, subject, day, startTime, endTime, floor, roomNumber, batch } = req.body;
 
     if (!classGroupId || !subject || !day || !startTime || !endTime || !roomNumber) {
       return res.status(400).json({ message: 'Missing required class session fields' });
@@ -80,6 +80,7 @@ const createClassSession = async (req, res) => {
       endTime,
       floor: Number(mappedFloor),
       roomNumber,
+      batch: String(batch || '').trim(),
     });
 
     const populated = await ClassSession.findById(session._id)

@@ -29,6 +29,27 @@ const normalizeStatus = (status) => {
   return status || 'logoff';
 };
 
+const resolveCurrentLocation = (user, normalizedStatus) => {
+  if (normalizedStatus === 'in_classroom') {
+    return {
+      classroomNumber: user.currentLocationRoomNumber || null,
+      classroomFloor: user.currentLocationFloor ?? null,
+    };
+  }
+
+  if (normalizedStatus === 'cabin') {
+    return {
+      classroomNumber: user.cabinRoomNumber || user.cabinNumber || null,
+      classroomFloor: user.cabinFloor ?? null,
+    };
+  }
+
+  return {
+    classroomNumber: null,
+    classroomFloor: null,
+  };
+};
+
 // @desc    Get all faculty members
 // @route   GET /api/users/faculty
 // @access  Private
@@ -86,6 +107,7 @@ const getFaculty = async (req, res) => {
           status: 'in_classroom',
           classroomNumber: currentSession.roomNumber,
           classroomFloor: currentSession.floor,
+          customStatusMessage: user.customStatusMessage || '',
           activeClassGroup: currentSession.classGroup,
         };
       }
@@ -94,8 +116,8 @@ const getFaculty = async (req, res) => {
         ...user.toObject(),
         departments,
         status: normalizeStatus(user.status),
-        classroomNumber: user.cabinRoomNumber || user.cabinNumber || null,
-        classroomFloor: user.cabinFloor || null,
+        ...resolveCurrentLocation(user, normalizeStatus(user.status)),
+        customStatusMessage: user.customStatusMessage || '',
       };
     });
 
@@ -126,6 +148,15 @@ const updateFacultyProfile = async (req, res) => {
     if (Object.prototype.hasOwnProperty.call(req.body, 'departmentId')) {
       updateDoc.department = req.body.departmentId;
     }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'customStatusMessage')) {
+      updateDoc.customStatusMessage = String(req.body.customStatusMessage || '').trim().slice(0, 80);
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'currentLocationRoomNumber')) {
+      updateDoc.currentLocationRoomNumber = String(req.body.currentLocationRoomNumber || '').trim();
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'currentLocationFloor')) {
+      updateDoc.currentLocationFloor = req.body.currentLocationFloor;
+    }
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
@@ -150,8 +181,8 @@ const updateFacultyProfile = async (req, res) => {
           : [{
               facultyId: updatedUser._id.toString(),
               status: normalizeStatus(updatedUser.status),
-              classroomNumber: updatedUser.cabinRoomNumber || updatedUser.cabinNumber || null,
-              classroomFloor: updatedUser.cabinFloor || null,
+              ...resolveCurrentLocation(updatedUser, normalizeStatus(updatedUser.status)),
+              customStatusMessage: updatedUser.customStatusMessage || '',
             }];
         io.emit('faculty:status', payload);
       }

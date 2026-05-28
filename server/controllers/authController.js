@@ -10,6 +10,11 @@ const generateToken = (id) => {
 const getDeviceFingerprint = (req) =>
   req.body?.deviceFingerprint || req.headers['x-device-fingerprint'];
 
+const isStrongPassword = (password) => {
+  const value = String(password || '');
+  return value.length >= 6 && /[A-Z]/.test(value) && value.includes('@');
+};
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
@@ -20,6 +25,10 @@ const registerUser = async (req, res) => {
 
     if (!deviceFingerprint && role === 'student') {
       return res.status(400).json({ message: 'Device fingerprint is required' });
+    }
+
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters, include one uppercase letter, and include @' });
     }
 
     const userExists = await User.findOne({ email });
@@ -58,6 +67,7 @@ const registerUser = async (req, res) => {
         role: user.role,
         department: user.department,
         activeClassGroup: user.activeClassGroup,
+        faceEnrollmentStatus: user.faceEnrollmentStatus || 'not_enrolled',
         token: generateToken(user._id),
       });
     } else {
@@ -112,6 +122,7 @@ const loginUser = async (req, res) => {
         role: user.role,
         department: user.department,
         activeClassGroup: user.activeClassGroup,
+        faceEnrollmentStatus: user.faceEnrollmentStatus || 'not_enrolled',
         token: generateToken(user._id),
       });
     } else {

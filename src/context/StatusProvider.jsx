@@ -50,6 +50,7 @@ export const StatusProvider = ({ children }) => {
             status: update.status,
             classroomNumber: update.classroomNumber,
             classroomFloor: update.classroomFloor,
+            customStatusMessage: update.customStatusMessage ?? prof.customStatusMessage,
           };
         })
       );

@@ -2,8 +2,11 @@ const ClassSession = require('../models/ClassSession');
 const User = require('../models/User');
 const Attendance = require('../models/Attendance');
 const AttendanceSession = require('../models/AttendanceSession');
+const FaceVerificationGrant = require('../models/FaceVerificationGrant');
 const jwt = require('jsonwebtoken');
 const { getSocket } = require('../socket');
+
+const verifyFaceGrantToken = (token) => jwt.verify(token, process.env.JWT_SECRET);
 
 // @desc    Get timetable for user
 // @route   GET /api/classroom/timetable
@@ -59,9 +62,9 @@ const startAttendanceSession = async (req, res) => {
       return res.status(403).json({ message: 'Only faculty can start attendance' });
     }
 
-    const { classSessionId, totalStudents } = req.body;
-    if (!classSessionId || !totalStudents) {
-      return res.status(400).json({ message: 'classSessionId and totalStudents are required' });
+    const { classSessionId } = req.body;
+    if (!classSessionId) {
+      return res.status(400).json({ message: 'classSessionId is required' });
     }
 
     const classSession = await ClassSession.findById(classSessionId).populate('classGroup', 'name');
@@ -78,15 +81,18 @@ const startAttendanceSession = async (req, res) => {
       classSession: classSession._id,
       dateKey,
     });
-    if (existingSession && existingSession.active === false) {
-      return res.status(400).json({ message: 'Attendance already completed for today for this class' });
-    }
+
+    const classGroupId = classSession.classGroup?._id || classSession.classGroup;
+    const totalStudents = await User.countDocuments({
+      role: 'student',
+      activeClassGroup: classGroupId,
+    });
 
     const sessionDoc = await AttendanceSession.findOneAndUpdate(
       { classSession: classSession._id, dateKey },
       {
         $set: {
-          classGroup: classSession.classGroup?._id || classSession.classGroup,
+          classGroup: classGroupId,
           faculty: req.user._id,
           subject: classSession.subject,
           totalStudents: Number(totalStudents),
@@ -95,6 +101,11 @@ const startAttendanceSession = async (req, res) => {
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     ).populate('classGroup', 'name');
+
+    // Faculty can overwrite attendance for the same class/date by restarting.
+    if (existingSession) {
+      await Attendance.deleteMany({ attendanceSession: sessionDoc._id });
+    }
 
     const qrToken = buildQrToken(sessionDoc._id);
     return res.json({
@@ -144,8 +155,12 @@ const scanAttendanceQr = async (req, res) => {
     }
 
     const qrToken = String(req.body?.qrToken || '').trim();
+    const faceVerificationToken = String(req.body?.faceVerificationToken || '').trim();
     if (!qrToken) {
       return res.status(400).json({ message: 'qrToken is required' });
+    }
+    if (!faceVerificationToken) {
+      return res.status(401).json({ message: 'Face verification is required before scanning QR' });
     }
 
     let decoded;
@@ -162,6 +177,30 @@ const scanAttendanceQr = async (req, res) => {
     const attendanceSession = await AttendanceSession.findById(decoded.attendanceSessionId);
     if (!attendanceSession || !attendanceSession.active) {
       return res.status(400).json({ message: 'Attendance session is inactive or not found' });
+    }
+
+    let decodedFaceGrant;
+    try {
+      decodedFaceGrant = verifyFaceGrantToken(faceVerificationToken);
+    } catch {
+      return res.status(401).json({ message: 'Face verification expired. Verify again.' });
+    }
+
+    if (decodedFaceGrant?.type !== 'face_verified' || String(decodedFaceGrant?.userId) !== String(req.user._id)) {
+      return res.status(401).json({ message: 'Invalid face verification token' });
+    }
+
+    const deviceFingerprint = req.headers['x-device-fingerprint'];
+    const grant = await FaceVerificationGrant.findOne({
+      user: req.user._id,
+      jti: decodedFaceGrant.jti,
+    });
+
+    if (!grant || grant.expiresAt < new Date()) {
+      return res.status(401).json({ message: 'Face verification token is not valid anymore' });
+    }
+    if (!deviceFingerprint || grant.deviceFingerprint !== deviceFingerprint) {
+      return res.status(401).json({ message: 'Device mismatch for face verification token' });
     }
 
     const student = await User.findById(req.user._id).select('activeClassGroup');

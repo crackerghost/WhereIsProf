@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthProvider';
 import { useAuth } from './hooks/useAuth';
 import { StatusProvider } from './context/StatusProvider';
+import { ToastProvider } from './context/ToastContext';
 import { Layout } from './components/Layout';
 
 // Pages
@@ -118,11 +119,13 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <StatusProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
-      </StatusProvider>
+      <ToastProvider>
+        <StatusProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </StatusProvider>
+      </ToastProvider>
     </AuthProvider>
   );
 }

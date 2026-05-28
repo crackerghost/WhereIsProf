@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
     "@tailwindcss/vite": "^4.3.0",
     "axios": "^1.16.0",
     "clsx": "^2.1.1",
@@ -22,7 +24,8 @@
     "react-loading-skeleton": "^3.5.0",
     "react-router-dom": "^7.15.0",
     "socket.io-client": "^4.8.1",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "three": "^0.184.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

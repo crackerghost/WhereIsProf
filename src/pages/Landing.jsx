@@ -36,11 +36,11 @@ const Landing = () => {
   }, []);
 
   const roadmap = [
-    { title: 'Identity & Access', detail: 'Role-based login, protected routes, and session control.' },
-    { title: 'Faculty Presence', detail: 'Status updates, cabin mapping, and timetable-based classroom override.' },
-    { title: 'Realtime Transport', detail: 'Socket channels deliver live room and attendance updates.' },
-    { title: 'QR Attendance', detail: 'Faculty starts day session; student scans valid rotating QR token.' },
-    { title: 'Analytics Layer', detail: 'Present, absent, and subject-wise attendance percentage tracking.' },
+    { title: 'Sign In by Role', detail: 'Separate sign-in for students and faculty, with protected routes for each.' },
+    { title: 'Faculty Availability', detail: 'Faculty set their office, status, and current class — students see it live.' },
+    { title: 'Live Updates', detail: 'Status, room changes, and announcements stream to students in real time.' },
+    { title: 'QR + Face Attendance', detail: 'Faculty starts a session; students pass a quick face check, then scan a rotating QR to mark attendance — no proxies.' },
+    { title: 'Attendance Summary', detail: 'Subject-wise percentages, present/absent counts, and recent entries.' },
   ];
   useEffect(() => {
     if (!roadmapGridRef.current || typeof ResizeObserver === 'undefined') return;
@@ -141,23 +141,23 @@ const Landing = () => {
               className="space-y-5 lg:col-span-8 lg:max-w-4xl"
             >
               <div className="inline-flex items-center h-8 px-3 rounded-full border border-zinc-800 bg-zinc-950/60 text-zinc-400 text-[10px] uppercase tracking-[0.25em] font-black">
-                Campus Intelligence Platform
+                Faculty Locator for Colleges
               </div>
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-black uppercase tracking-tight leading-[0.95]">
                 <span className="text-white">Locate Faculty.</span>
                 <br />
-                <span className="not-italic text-zinc-500">Track </span>
-                <span className="italic font-extrabold text-white">Sessions.</span>
+                <span className="not-italic text-zinc-500">See </span>
+                <span className="italic font-extrabold text-white">Schedules.</span>
                 <br />
-                <span className="not-italic text-zinc-500">Verify </span>
+                <span className="not-italic text-zinc-500">Mark </span>
                 <span className="italic font-extrabold text-white">Attendance.</span>
               </h1>
               <p className="text-zinc-400 text-sm md:text-base max-w-2xl leading-relaxed">
-                Production-ready campus workflow platform for real-time faculty presence, mapped navigation, and QR-based class attendance.
+                Know where your faculty are right now, find them on the campus map, and mark attendance with a face check and a quick QR scan.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Link to="/login" className="h-12 px-6 min-w-[180px] rounded-xl bg-white text-black hover:bg-zinc-200 text-[11px] uppercase font-black tracking-[0.2em] flex items-center justify-center">
-                  Open Platform <RiArrowRightLine className="ml-2" />
+                  Sign In <RiArrowRightLine className="ml-2" />
                 </Link>
                 <Link to="/register" className="h-12 px-6 min-w-[180px] rounded-xl border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 text-[11px] uppercase font-black tracking-[0.2em] flex items-center justify-center">
                   Create Account
@@ -172,9 +172,9 @@ const Landing = () => {
           <section className="max-w-6xl mx-auto mt-10 md:mt-14">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
-                { icon: RiPulseLine, label: 'Realtime Stream', value: 'Live Socket Status' },
-                { icon: RiCalendarCheckLine, label: 'Smart Timetable', value: 'Auto Classroom Mapping' },
-                { icon: RiTeamLine, label: 'Role Engine', value: 'Faculty / Student Access' },
+                { icon: RiPulseLine, label: 'Live Updates', value: 'Real-time faculty status' },
+                { icon: RiCalendarCheckLine, label: 'Timetable Sync', value: 'Auto classroom mapping' },
+                { icon: RiTeamLine, label: 'Two Roles', value: 'Student & Faculty access' },
               ].map((kpi) => (
                 <div key={kpi.label} className="rounded-2xl border border-zinc-900 bg-zinc-950/55 p-5">
                   <div className="h-10 w-10 rounded-xl bg-white text-black flex items-center justify-center mb-3">
@@ -189,8 +189,8 @@ const Landing = () => {
 
           <section className="mt-10 md:mt-14">
             <div className="max-w-6xl mx-auto mb-6">
-              <h2 className="text-white text-2xl md:text-3xl font-black uppercase tracking-tight">Product Roadmap</h2>
-              <p className="text-zinc-500 text-xs md:text-sm uppercase tracking-widest mt-2">Current app flow from access to analytics</p>
+              <h2 className="text-white text-2xl md:text-3xl font-black uppercase tracking-tight">How It Works</h2>
+              <p className="text-zinc-500 text-xs md:text-sm uppercase tracking-widest mt-2">From sign-in to attendance, in five steps</p>
             </div>
 
             <div className="relative left-1/2 right-1/2 w-screen -translate-x-1/2 rounded-none bg-white/[0.04] backdrop-blur-sm shadow-[0_24px_90px_rgba(0,0,0,0.5)] p-4 md:p-8 overflow-hidden z-30">
@@ -292,38 +292,37 @@ const Landing = () => {
                 <p className="text-white font-black uppercase tracking-tight">WhereIsProf</p>
               </div>
               <p className="text-zinc-500 text-xs mt-3 leading-relaxed">
-                Realtime academic presence and attendance operations platform.
+                Live faculty availability, campus map, and QR-based attendance for colleges.
               </p>
             </div>
 
             <div>
-              <p className="text-zinc-300 text-[11px] font-black uppercase tracking-[0.2em] mb-3">Platform</p>
+              <p className="text-zinc-300 text-[11px] font-black uppercase tracking-[0.2em] mb-3">Features</p>
               <div className="space-y-2 text-zinc-500 text-xs">
-                <p>Faculty Locator</p>
-                <p>Campus Navigator</p>
-                <p>QR Attendance</p>
-                <p>Class Broadcasts</p>
+                <p>Faculty Directory</p>
+                <p>Campus Map</p>
+                <p>QR + Face Attendance</p>
+                <p>Class Announcements</p>
               </div>
             </div>
 
             <div>
-              <p className="text-zinc-300 text-[11px] font-black uppercase tracking-[0.2em] mb-3">Flows</p>
+              <p className="text-zinc-300 text-[11px] font-black uppercase tracking-[0.2em] mb-3">For Students & Faculty</p>
               <div className="space-y-2 text-zinc-500 text-xs">
-                <p>Student Scan Journey</p>
-                <p>Faculty Status Updates</p>
-                <p>Timetable Sync</p>
-                <p>Attendance Summary</p>
+                <p>Scan QR to mark attendance</p>
+                <p>Set status & office room</p>
+                <p>Sync your timetable</p>
+                <p>View attendance summary</p>
               </div>
             </div>
 
             <div>
-              <p className="text-zinc-300 text-[11px] font-black uppercase tracking-[0.2em] mb-3">Access</p>
-              <div className="space-y-3">
-                <Link to="/login" className="h-10 w-[140px] rounded-xl border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 text-[10px] uppercase font-black tracking-[0.2em] inline-flex items-center justify-center">
+              <p className="text-zinc-300 text-[11px] font-black uppercase tracking-[0.2em] mb-3">Get Started</p>
+              <div className="flex flex-row gap-3 sm:flex-col">
+                <Link to="/login" className="h-10 flex-1 sm:flex-none sm:w-[140px] rounded-xl border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 text-[10px] uppercase font-black tracking-[0.2em] inline-flex items-center justify-center">
                   Login
                 </Link>
-                <br />
-                <Link to="/register" className="h-10 w-[140px] rounded-xl bg-white text-black hover:bg-zinc-200 text-[10px] uppercase font-black tracking-[0.2em] inline-flex items-center justify-center">
+                <Link to="/register" className="h-10 flex-1 sm:flex-none sm:w-[140px] rounded-xl bg-white text-black hover:bg-zinc-200 text-[10px] uppercase font-black tracking-[0.2em] inline-flex items-center justify-center">
                   Register
                 </Link>
               </div>

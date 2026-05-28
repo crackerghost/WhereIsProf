@@ -94,7 +94,7 @@ const UpdateDetail = ({ subject, onClose }) => {
       </div>
       
       <div className="p-6 md:p-8 border-t border-zinc-900 bg-zinc-950 shrink-0">
-         <p className="text-[8px] md:text-[9px] font-bold text-zinc-700 uppercase tracking-[0.3em] text-center">Protocol Communications Secured</p>
+         <p className="text-[8px] md:text-[9px] font-bold text-zinc-700 uppercase tracking-[0.3em] text-center">End of thread</p>
       </div>
     </motion.div>
   );
@@ -186,17 +186,17 @@ const Updates = () => {
     <div className="space-y-10 pb-20 relative">
       <div className="max-w-3xl space-y-4">
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tighter leading-none uppercase">
-          Signal <br className="hidden sm:block"/> <span className="text-zinc-600">Broadcast</span>
+          Class <br className="hidden sm:block"/> <span className="text-zinc-600">Announcements</span>
         </h1>
         <p className="text-zinc-500 text-sm md:text-lg font-medium max-w-xl">
-          Receive critical updates and administrative directives from faculty leads.
+          Updates and notes shared by your faculty.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
         {!classGroupId && (
           <Card className="p-6 border-zinc-900 bg-zinc-950/50">
-            <p className="text-zinc-500 text-sm">Select an active class group to receive broadcasts.</p>
+            <p className="text-zinc-500 text-sm">Select your active class to see announcements.</p>
           </Card>
         )}
         {subjectUpdates.map((subject, index) => (
@@ -227,7 +227,7 @@ const Updates = () => {
                 <div className="flex items-center space-x-4 md:space-x-6 shrink-0">
                   <div className="text-right hidden sm:block">
                      <span className="text-white font-black text-xs block">{subject.updates.length}</span>
-                     <span className="text-[8px] font-black text-zinc-700 uppercase tracking-widest">Active Signals</span>
+                     <span className="text-[8px] font-black text-zinc-700 uppercase tracking-widest">Updates</span>
                   </div>
                   <div className="h-8 w-8 md:h-10 md:w-10 bg-zinc-950 border border-zinc-900 rounded-xl flex items-center justify-center text-zinc-700 group-hover:text-white group-hover:border-zinc-700 transition-all">
                     <RiArrowRightSLine size={18} md:size={20} />
@@ -260,7 +260,7 @@ const Updates = () => {
       <div className="pt-10 flex items-center justify-center px-4">
          <div className="flex items-center space-x-3 md:space-x-4 px-5 py-2.5 md:px-6 md:py-3 bg-zinc-950 rounded-full border border-zinc-900 shadow-2xl">
             <RiNotification4Fill className="text-white animate-bounce" size={14} md:size={16} />
-            <span className="text-[8px] md:text-[9px] font-black text-white uppercase tracking-[0.2em] md:tracking-[0.3em] text-center">All signals current and synchronized</span>
+            <span className="text-[8px] md:text-[9px] font-black text-white uppercase tracking-[0.2em] md:tracking-[0.3em] text-center">You're all caught up</span>
          </div>
       </div>
     </div>

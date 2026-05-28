@@ -49,7 +49,7 @@ export const Layout = ({ children }) => {
               
               <div className="flex items-center space-x-4">
                 <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_15px_rgba(34,197,94,0.6)]" />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600 hidden sm:inline">Secure Protocol Active</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600 hidden sm:inline">Live</span>
               </div>
            </div>
            
@@ -75,7 +75,7 @@ export const Layout = ({ children }) => {
 
         {/* Mini Footer */}
         <footer className="h-16 flex items-center px-6 md:px-10 bg-black/55 backdrop-blur-xl justify-between border-t border-zinc-900/40">
-           <span className="text-[8px] font-black text-zinc-800 uppercase tracking-[0.5em] truncate mr-4">WhereIsProf v2.0.4 - Intelligence Layer</span>
+           <span className="text-[8px] font-black text-zinc-800 uppercase tracking-[0.5em] truncate mr-4">WhereIsProf · Faculty Locator</span>
            <div className="flex items-center space-x-6 shrink-0">
               <span className="text-[8px] font-bold text-zinc-800 uppercase tracking-widest cursor-pointer hover:text-zinc-500 transition-colors">Docs</span>
               <span className="text-[8px] font-bold text-zinc-800 uppercase tracking-widest cursor-pointer hover:text-zinc-500 transition-colors">Support</span>

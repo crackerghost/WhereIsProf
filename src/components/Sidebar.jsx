@@ -15,8 +15,7 @@ import {
   RiTimeLine,
   RiNotification4Fill,
   RiCloseLine,
-  RiBroadcastFill,
-  RiPieChartFill
+  RiBroadcastFill
 } from 'react-icons/ri';
 import { useAuth } from '../hooks/useAuth';
 import { cn } from '../lib/utils';
@@ -50,27 +49,26 @@ const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen })
 
   // Define Menus for each Role
   const studentMenuItems = [
-    { name: 'Locator', path: '/locator', icon: RiDashboardFill },
+    { name: 'Faculty Directory', path: '/locator', icon: RiDashboardFill },
     { name: 'Campus Map', path: '/map', icon: RiMapPin2Fill },
-    { 
-      name: 'Classroom', 
+    {
+      name: 'Classroom',
       icon: RiCalendarEventFill,
       subItems: [
-        { name: 'Time Table', path: '/classroom', icon: RiTimeLine },
-        { name: 'Updates', path: '/updates', icon: RiNotification4Fill },
+        { name: 'Timetable', path: '/classroom', icon: RiTimeLine },
+        { name: 'Announcements', path: '/updates', icon: RiNotification4Fill },
         { name: 'Attendance', path: '/attendance', icon: RiUserFollowFill },
       ]
     },
   ];
 
   const facultyMenuItems = [
-    { name: 'Faculty Intelligence', path: '/locator', icon: RiDashboardFill },
-    { name: 'Control Center', path: '/faculty', icon: RiUserSettingsFill },
-    { name: 'Daily Schedule', path: '/faculty?tab=schedule', icon: RiTimeLine },
-    { name: 'Attendance QR', path: '/attendance', icon: RiUserFollowFill },
-    { name: 'Broadcast Hub', path: '/faculty?tab=broadcast', icon: RiBroadcastFill },
-    { name: 'Analytics', path: '/faculty?tab=analytics', icon: RiPieChartFill },
-    { name: 'Global Map', path: '/map', icon: RiMapPin2Fill },
+    { name: 'Faculty Directory', path: '/locator', icon: RiDashboardFill },
+    { name: 'My Dashboard', path: '/faculty', icon: RiUserSettingsFill },
+    { name: 'Schedule', path: '/faculty?tab=schedule', icon: RiTimeLine },
+    { name: 'Attendance', path: '/attendance', icon: RiUserFollowFill },
+    { name: 'Announcements', path: '/faculty?tab=broadcast', icon: RiBroadcastFill },
+    { name: 'Campus Map', path: '/map', icon: RiMapPin2Fill },
   ];
 
   const menuItems = user?.role === 'faculty' ? facultyMenuItems : studentMenuItems;
@@ -94,7 +92,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen })
               >
                 <span className="text-white font-black uppercase tracking-tighter text-xl leading-none">WhereIsProf</span>
                 <span className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.4em] mt-1">
-                  {user?.role === 'faculty' ? 'Faculty Command' : 'Student Terminal'}
+                  {user?.role === 'faculty' ? 'Faculty Portal' : 'Student Portal'}
                 </span>
               </motion.div>
             )}
@@ -117,7 +115,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen })
       <div className="flex-1 overflow-y-auto custom-scrollbar px-5 py-8 relative z-10">
         <div className="space-y-3">
           <div className={cn("px-1 mb-4", (isCollapsed && !isMobileOpen) ? "hidden" : "block")}>
-            <span className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.5em]">Command Hub</span>
+            <span className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.5em]">Menu</span>
           </div>
           
           {menuItems.map((item) => {
@@ -229,7 +227,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen })
               )}
             >
               <RiLogoutBoxRLine size={20} className="shrink-0" />
-              {(!isCollapsed || isMobileOpen) && <span className="ml-4 text-[10px] font-black uppercase tracking-[0.1em] whitespace-nowrap">Terminate</span>}
+              {(!isCollapsed || isMobileOpen) && <span className="ml-4 text-[10px] font-black uppercase tracking-[0.1em] whitespace-nowrap">Sign Out</span>}
             </button>
           </div>
         ) : (
@@ -239,7 +237,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen })
                   className={cn("w-full h-12 flex items-center rounded-2xl bg-white text-black font-black hover:bg-zinc-200 transition-all duration-300 active:scale-95 overflow-hidden shadow-xl shadow-white/5", (isCollapsed && !isMobileOpen) ? "justify-center" : "px-4")}
                 >
                   <RiLoginBoxLine size={22} className="shrink-0" />
-                  {(!isCollapsed || isMobileOpen) && <span className="ml-4 text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap">Authorize</span>}
+                  {(!isCollapsed || isMobileOpen) && <span className="ml-4 text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap">Sign In</span>}
                 </button>
              </Link>
           </div>

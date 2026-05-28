@@ -36,7 +36,8 @@ app.use(
   })
 );
 app.options(/.*/, cors());
-app.use(express.json());
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -132,6 +133,22 @@ const normalizeStatus = (status) => {
   return status || 'logoff';
 };
 
+const resolveCurrentLocation = (user, normalizedStatus) => {
+  if (normalizedStatus === 'in_classroom') {
+    return {
+      classroomNumber: user.currentLocationRoomNumber || null,
+      classroomFloor: user.currentLocationFloor ?? null,
+    };
+  }
+  if (normalizedStatus === 'cabin') {
+    return {
+      classroomNumber: user.cabinRoomNumber || user.cabinNumber || null,
+      classroomFloor: user.cabinFloor ?? null,
+    };
+  }
+  return { classroomNumber: null, classroomFloor: null };
+};
+
 const emitFacultyStatuses = async () => {
   const now = new Date();
   const faculty = await User.find({ role: 'faculty' }).select('-password');
@@ -159,11 +176,12 @@ const emitFacultyStatuses = async () => {
       };
     }
 
+    const normalizedStatus = normalizeStatus(user.status);
     return {
       facultyId: user._id.toString(),
-      status: normalizeStatus(user.status),
-      classroomNumber: user.cabinRoomNumber || user.cabinNumber || null,
-      classroomFloor: user.cabinFloor || null,
+      status: normalizedStatus,
+      ...resolveCurrentLocation(user, normalizedStatus),
+      customStatusMessage: user.customStatusMessage || '',
     };
   });
 

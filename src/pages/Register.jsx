@@ -2,13 +2,19 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Card, Button, Input } from '../components/ui';
-import { UserPlus, AlertCircle, ArrowRight } from 'lucide-react';
+import { UserPlus, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
+
+const isStrongPassword = (password) => {
+  const value = String(password || '');
+  return value.length >= 6 && /[A-Z]/.test(value) && value.includes('@');
+};
 
 const Register = () => {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('student');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
@@ -21,6 +27,11 @@ const Register = () => {
 
     if (role === 'faculty' && !email.endsWith('@college.edu')) {
       setError('Faculty registration requires an institutional email (@college.edu)');
+      setLoading(false);
+      return;
+    }
+    if (!isStrongPassword(password)) {
+      setError('Password must be at least 6 characters, include one uppercase letter, and include @');
       setLoading(false);
       return;
     }
@@ -48,7 +59,7 @@ const Register = () => {
             <UserPlus className="h-8 w-8 text-black" />
           </div>
           <h1 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
-            Create <br/><span className="text-zinc-600">Profile</span>
+            Create <br/><span className="text-zinc-600">Account</span>
           </h1>
         </div>
 
@@ -95,7 +106,7 @@ const Register = () => {
             />
 
             <Input
-              label="Identifier"
+              label="Email"
               type="email"
               placeholder={role === 'faculty' ? 'faculty@college.edu' : 'student@college.edu'}
               value={email}
@@ -105,16 +116,28 @@ const Register = () => {
               className="bg-black border-zinc-900"
             />
 
-            <Input
-              label="Secret"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-              className="bg-black border-zinc-900"
-            />
+            <div className="space-y-1.5 w-full">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500 ml-1">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="w-full px-4 py-2.5 pr-11 bg-black/80 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white focus:border-white transition-all duration-300"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 px-3 text-zinc-500 hover:text-white"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              <p className="text-[10px] uppercase tracking-widest text-zinc-600 ml-1">Min 6 chars, one uppercase, must include @</p>
+            </div>
           </div>
 
           <Button 
@@ -122,16 +145,16 @@ const Register = () => {
             disabled={loading}
             className="w-full h-14 text-xs font-black uppercase tracking-[0.2em] flex items-center justify-center group"
           >
-            {loading ? 'Establishing...' : 'Establish Account'}
+            {loading ? 'Creating...' : 'Create Account'}
             {!loading && <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />}
           </Button>
         </form>
 
         <div className="mt-8 pt-6 border-t border-zinc-900 text-center">
           <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest">
-            Already registered?{' '}
+            Already have an account?{' '}
             <Link to="/login" className="text-white hover:text-zinc-300 transition-colors">
-              Authorize Now
+              Sign in
             </Link>
           </p>
         </div>

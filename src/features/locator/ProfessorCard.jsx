@@ -6,10 +6,10 @@ import { cn } from '../../lib/utils';
 
 const StatusBadge = ({ status }) => {
   const configs = {
-    cabin: { label: 'In Cabin', color: 'bg-green-500/10 text-green-500 border-green-500/20' },
+    cabin: { label: 'In Office', color: 'bg-green-500/10 text-green-500 border-green-500/20' },
     in_classroom: { label: 'In Class', color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' },
     busy: { label: 'Busy', color: 'bg-red-500/10 text-red-500 border-red-500/20' },
-    logoff: { label: 'Logoff', color: 'bg-zinc-800/60 text-zinc-500 border-zinc-700/40' },
+    logoff: { label: 'Offline', color: 'bg-zinc-800/60 text-zinc-500 border-zinc-700/40' },
   };
 
   const config = configs[status] || configs.logoff;
@@ -25,6 +25,9 @@ export const ProfessorCard = ({ prof }) => {
   const navigate = useNavigate();
   const roomNumber = prof.classroomNumber || prof.cabinRoomNumber || prof.cabinNumber;
   const roomFloor = prof.classroomFloor || prof.cabinFloor || prof.floor;
+  const cabinRoom = prof.cabinRoomNumber || prof.cabinNumber || '—';
+  const cabinFloor = prof.cabinFloor ?? '—';
+  const currentLocationLabel = roomNumber ? `${roomNumber} (Floor ${roomFloor ?? '—'})` : 'Unavailable';
   const normalizedRoom = roomNumber ? String(roomNumber).trim() : '';
   const normalizedFloor = Number.isFinite(Number(roomFloor)) ? Number(roomFloor) : 1;
   const departmentText = prof.departments?.length
@@ -66,13 +69,24 @@ export const ProfessorCard = ({ prof }) => {
               <p className="text-[9px] md:text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] mt-1 md:mt-2">
                 {departmentText}
               </p>
+              {prof.customStatusMessage ? (
+                <p className="text-[10px] text-zinc-300 font-medium mt-2 leading-snug">
+                  {prof.customStatusMessage}
+                </p>
+              ) : null}
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-x-8 gap-y-3">
               <div className="flex items-center text-sm text-zinc-400">
                 <MapPin className="h-4 w-4 mr-2.5 text-zinc-600 shrink-0" />
                 <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
-                  Terminal <span className="text-white ml-1">{roomNumber || 'TBD'}</span>
+                  Now at <span className="text-white ml-1">{currentLocationLabel}</span>
+                </span>
+              </div>
+              <div className="flex items-center text-sm text-zinc-400">
+                <MapPin className="h-4 w-4 mr-2.5 text-zinc-600 shrink-0" />
+                <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+                  Office <span className="text-white ml-1">{cabinRoom} (Floor {cabinFloor})</span>
                 </span>
               </div>
               <div className="flex items-center text-sm text-zinc-400 min-w-0">
@@ -98,7 +112,7 @@ export const ProfessorCard = ({ prof }) => {
                 navigate(`/map?${params.toString()}`);
               }}
             >
-              Interception Mode
+              Locate on Map
               <ChevronRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
             </Button>
           </div>
