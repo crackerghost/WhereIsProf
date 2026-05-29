@@ -309,8 +309,11 @@ const stopAttendanceSession = async (req, res) => {
       return res.status(403).json({ message: 'Not allowed for this attendance session' });
     }
 
+    // Persist the closed state directly so we don't re-run full-document
+    // validators (e.g. totalStudents min:1), which would otherwise fail and
+    // block stopping a session for a class that has 0 students.
     sessionDoc.active = false;
-    await sessionDoc.save();
+    await AttendanceSession.updateOne({ _id: sessionDoc._id }, { $set: { active: false } });
 
     return res.json({ message: 'Attendance session stopped', attendanceSession: sessionDoc });
   } catch (error) {

@@ -27,7 +27,8 @@ export const ProfessorCard = ({ prof }) => {
   const roomFloor = prof.classroomFloor || prof.cabinFloor || prof.floor;
   const cabinRoom = prof.cabinRoomNumber || prof.cabinNumber || '—';
   const cabinFloor = prof.cabinFloor ?? '—';
-  const currentLocationLabel = roomNumber ? `${roomNumber} (Floor ${roomFloor ?? '—'})` : 'Unavailable';
+  const isLocationAvailable = Boolean(roomNumber);
+  const currentLocationLabel = isLocationAvailable ? `${roomNumber} (Floor ${roomFloor ?? '—'})` : 'Unavailable';
   const normalizedRoom = roomNumber ? String(roomNumber).trim() : '';
   const normalizedFloor = Number.isFinite(Number(roomFloor)) ? Number(roomFloor) : 1;
   const departmentText = prof.departments?.length
@@ -100,10 +101,12 @@ export const ProfessorCard = ({ prof }) => {
 
           {/* Action section */}
           <div className="flex-shrink-0 mt-2 lg:mt-0">
-            <Button 
-              variant="primary" 
-              className="w-full lg:w-auto h-12 md:h-14 px-6 md:px-8 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center group/btn shadow-[0_0_20px_rgba(255,255,255,0.05)] active:scale-95"
+            <Button
+              variant="primary"
+              disabled={!isLocationAvailable}
+              className="w-full lg:w-auto h-12 md:h-14 px-6 md:px-8 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center group/btn shadow-[0_0_20px_rgba(255,255,255,0.05)] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
               onClick={() => {
+                if (!isLocationAvailable) return;
                 const params = new URLSearchParams();
                 params.set('floor', String(normalizedFloor));
                 if (normalizedRoom && normalizedRoom.toLowerCase() !== 'undefined') {
@@ -112,8 +115,8 @@ export const ProfessorCard = ({ prof }) => {
                 navigate(`/map?${params.toString()}`);
               }}
             >
-              Locate on Map
-              <ChevronRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+              {isLocationAvailable ? 'Locate on Map' : 'Not Available'}
+              {isLocationAvailable && <ChevronRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />}
             </Button>
           </div>
         </div>
